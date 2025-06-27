@@ -49,6 +49,10 @@ INSTALLED_APPS = [
 
     # My Apps
     'main_app.apps.MainAppConfig'
+    
+]
+CSRF_TRUSTED_ORIGINS = [
+    'https://university-management-system-1-os8q.onrender.com',
 ]
 
 MIDDLEWARE = [
