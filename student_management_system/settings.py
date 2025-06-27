@@ -32,7 +32,8 @@ SECRET_KEY = 'django-insecure-!3k4l4jl$gk&@+a=example-secret-key+q20(y*7j8&)9'
 DEBUG = True
 
 # ALLOWED_HOSTS = ['smswithdjango.herokuapp.com']
-ALLOWED_HOSTS = []  # Not recommended but useful in dev mode
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'university-management-system-1-os8q.onrender.com']
+
 
 
 # Application definition
