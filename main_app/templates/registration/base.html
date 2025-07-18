@@ -5,45 +5,76 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>AdminLTE 3 | Log in</title>
+    <title>University Management System | Register</title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <!-- Font Awesome -->
     <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
     <!-- Ionicons -->
-    <link rel="stylesheet" href="{% static 'https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css' %}">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <!-- icheck bootstrap -->
     <link rel="stylesheet" href="{% static 'plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
     <!-- Theme style -->
     <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
-    <!-- Google Font: Source Sans Pro -->
-    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <!-- Custom Modern Styles -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <!-- Google Font: Nunito & Source Sans Pro -->
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,700|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <style>
+        body.login-page {
+            background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+            font-family: 'Nunito', 'Source Sans Pro', Arial, sans-serif;
+        }
+        .login-box {
+            margin-top: 6vh;
+        }
+        .login-logo {
+            margin-bottom: 1.5rem;
+        }
+        .login-logo img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(79,140,255,0.13);
+        }
+        .login-logo span {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4f8cff;
+            letter-spacing: 1px;
+            margin-left: 0.5rem;
+        }
+        .card {
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(79,140,255,0.10);
+            background: #fff;
+            padding: 2.2rem 2rem 1.5rem 2rem;
+        }
+    </style>
 </head>
 
 <body class="hold-transition login-page">
     <div class="login-box">
-        <div class="login-logo">
-            <a href="../../index2.html"><b>Admin</b>LTE</a>
-
+        <div class="login-logo d-flex flex-column align-items-center" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;">
+            <span class="fa-stack fa-2x" style="margin-bottom: 0;">
+                <i class="fas fa-circle fa-stack-2x" style="color: #2563eb;"></i>
+                <i class="fas fa-graduation-cap fa-stack-1x fa-inverse" style="color: #fff; font-size: 2.2rem;"></i>
+            </span>
+            <span style="font-size: 2.2rem; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; display: block; text-align: center; line-height: 1.1;">University Management System</span>
         </div>
         <!-- /.login-logo -->
         <div class="card">
-           
           {% block content %}
-            
           {% endblock content %}
         </div>
     </div>
     <!-- /.login-box -->
-
     <!-- jQuery -->
     <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
     <!-- Bootstrap 4 -->
     <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <!-- AdminLTE App -->
     <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
-
 </body>
 
 </html>
