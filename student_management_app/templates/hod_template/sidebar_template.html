@@ -3,9 +3,9 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
       <a href="{% url 'admin_home' %}" class="brand-link">
-        <img src="{% static 'dist/img/AdminLTELogo.png' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
+        <img src="{% static 'dist/img/AdminLTELogo.png' %}" alt="University Logo" class="brand-image img-circle elevation-3"
             style="opacity: .8">
-        <span class="brand-text font-weight-light">Open University</span>
+        <span class="brand-text font-weight-light">University Management</span>
       </a>
 
       <!-- Sidebar -->
@@ -50,7 +50,7 @@
             <li class="nav-item">
               {% url 'add_staff' as add_staff %}
               <a href="{{ add_staff }}" class="nav-link {% if request.path == add_staff %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-user-plus"></i>
                 <p>
                   Add Staff
                 </p>
@@ -71,7 +71,7 @@
             <li class="nav-item">
               {% url 'add_student' as add_student %}
               <a href="{{ add_student }}" class="nav-link {% if request.path == add_student %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-user-plus"></i>
                 <p>
                   Add Student
                 </p>
@@ -92,12 +92,14 @@
             <li class="nav-item">
             {% url 'add_course' as add_course %}
               <a href="{{ add_course }}" class="nav-link {% if request.path == add_course %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-plus-circle"></i>
                 <p>
                   Add Course
                 </p>
               </a>
             </li>
+
+
 
             <li class="nav-item">
               {% url 'manage_subject' as manage_subject %}
@@ -113,7 +115,7 @@
             <li class="nav-item">
               {% url 'add_subject' as add_subject %}
               <a href="{{ add_subject }}" class="nav-link {% if request.path == add_subject %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-plus-circle"></i>
                 <p>
                   Add Subject
                 </p>
@@ -135,7 +137,7 @@
             <li class="nav-item">
               {% url 'add_session' as add_session %}
               <a href="{{ add_session }}" class="nav-link {% if request.path == add_session %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-plus-circle"></i>
                 <p>
                   Add Session
                 </p>
@@ -156,7 +158,7 @@
             <li class="nav-item">
               {% url 'student_feedback_message' as student_feedback_message %}
               <a href="{{ student_feedback_message }}" class="nav-link {% if request.path == student_feedback_message %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-comments"></i>
                 <p>
                   Student Feedback
                 </p>
@@ -166,9 +168,9 @@
             <li class="nav-item">
               {% url 'staff_feedback_message' as staff_feedback_message %}
               <a href="{{ staff_feedback_message }}" class="nav-link {% if request.path == staff_feedback_message %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-comments"></i>
                 <p>
-                  Stafff Feedback
+                  Staff Feedback
                 </p>
               </a>
             </li>
@@ -176,7 +178,7 @@
             <li class="nav-item">
               {% url 'student_leave_view' as student_leave_view %}
               <a href="{{ student_leave_view }}" class="nav-link {% if request.path == student_leave_view %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-calendar-alt"></i>
                 <p>
                   Student Leave
                 </p>
@@ -186,7 +188,7 @@
             <li class="nav-item">
               {% url 'staff_leave_view' as staff_leave_view %}
               <a href="{{ staff_leave_view }}" class="nav-link {% if request.path == staff_leave_view %} active {% endif %}">
-                <i class="nav-icon fas fa-th"></i>
+                <i class="nav-icon fas fa-calendar-alt"></i>
                 <p>
                   Staff Leave
                 </p>

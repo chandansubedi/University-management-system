@@ -181,6 +181,7 @@ def delete_staff(request, staff_id):
 
 
 
+
 def add_course(request):
     return render(request, "hod_template/add_course_template.html")
 

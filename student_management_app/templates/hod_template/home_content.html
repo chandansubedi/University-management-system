@@ -6,122 +6,448 @@
 
 <section class="content">
         <div class="container-fluid">
-          <!-- Small boxes (Stat box) -->
-          <div class="row">
-            <div class="col-lg-3 col-6">
-              <!-- small box -->
-              <div class="small-box bg-info">
-                <div class="inner">
-                  <h3>{{ all_student_count }}</h3>
-
-                  <p>Total Students</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-stats-bars"></i>
-                </div>
-                <a href="{% url 'manage_student' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-            <!-- ./col -->
-            <div class="col-lg-3 col-6">
-              <!-- small box -->
-              <div class="small-box bg-danger">
-                <div class="inner">
-                  <h3>{{ staff_count }}</h3>
-
-                  <p>Total Staffs</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-stats-bars"></i>
-                </div>
-                <a href="{% url 'manage_staff' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-            <!-- ./col -->
-            
-            <div class="col-lg-3 col-6">
-              <!-- small box -->
-              <div class="small-box bg-warning">
-                <div class="inner">
-                  <h3>{{ course_count }}</h3>
-
-                  <p>Total Courses</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-stats-bars"></i>
-                </div>
-                <a href="{% url 'manage_course' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-            <!-- ./col -->
-            <div class="col-lg-3 col-6">
-              <!-- small box -->
-              <div class="small-box bg-success">
-                <div class="inner">
-                  <h3>{{ subject_count }}</h3>
-
-                  <p>Total Subjects</p>
-                </div>
-                <div class="icon">
-                  <i class="ion ion-stats-bars"></i>
-                </div>
-                <a href="{% url 'manage_subject' %}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
-              </div>
-            </div>
-            <!-- ./col -->
-            
+          <!-- Educational Dashboard Header -->
+          <div class="education-header">
+            <h2><i class="fas fa-graduation-cap mr-2"></i>University Management Dashboard</h2>
+            <p class="mb-0">Welcome to the comprehensive management system for academic excellence</p>
           </div>
-          <!-- /.row -->
-          <div class="row">
-            <div class="col-lg-6">
-              <!-- PIE CHART -->
-              <div class="card card-danger">
-                <div class="card-header">
-                  <h3 class="card-title">Student and Staff Chart</h3>
 
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <canvas id="pieChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                </div>
-                <!-- /.card-body -->
+          <!-- View Toggle Buttons -->
+          <div class="row mb-3">
+            <div class="col-12">
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary active" id="listViewBtn">
+                  <i class="fas fa-list mr-2"></i>List View
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="gridViewBtn">
+                  <i class="fas fa-th-large mr-2"></i>Grid View
+                </button>
               </div>
-              <!-- /.card -->
             </div>
+          </div>
 
-            <div class="col-lg-6">
-              <!-- DONUT CHART -->
-              <div class="card card-danger">
-                <div class="card-header">
-                  <h3 class="card-title">Total Subjects in Each Course</h3>
-
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+          <!-- Grid Dashboard (Hidden by default) -->
+          <div id="gridDashboard" style="display: none;">
+            <div class="row">
+              <!-- Staff Management Cards -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-chalkboard-teacher fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Manage Staff</h5>
+                    <p class="card-text">View and manage all staff members</p>
+                    <a href="{% url 'manage_staff' %}" class="btn btn-primary">
+                      <i class="fas fa-eye mr-2"></i>View Staff
+                    </a>
                   </div>
                 </div>
-                <div class="card-body">
-                  <canvas id="donutChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                </div>
-                <!-- /.card-body -->
               </div>
-              <!-- /.card -->
+
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-user-plus fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Add Staff</h5>
+                    <p class="card-text">Add new staff members to the system</p>
+                    <a href="{% url 'add_staff' %}" class="btn btn-success">
+                      <i class="fas fa-plus mr-2"></i>Add Staff
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Student Management Cards -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-user-graduate fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">Manage Students</h5>
+                    <p class="card-text">View and manage all students</p>
+                    <a href="{% url 'manage_student' %}" class="btn btn-info">
+                      <i class="fas fa-eye mr-2"></i>View Students
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-user-plus fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Add Student</h5>
+                    <p class="card-text">Add new students to the system</p>
+                    <a href="{% url 'add_student' %}" class="btn btn-warning">
+                      <i class="fas fa-plus mr-2"></i>Add Student
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Course Management Cards -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-chalkboard fa-3x text-danger"></i>
+                    </div>
+                    <h5 class="card-title">Manage Courses</h5>
+                    <p class="card-text">View and manage all courses</p>
+                    <a href="{% url 'manage_course' %}" class="btn btn-danger">
+                      <i class="fas fa-eye mr-2"></i>View Courses
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-plus-circle fa-3x text-secondary"></i>
+                    </div>
+                    <h5 class="card-title">Add Course</h5>
+                    <p class="card-text">Add new courses to the system</p>
+                    <a href="{% url 'add_course' %}" class="btn btn-secondary">
+                      <i class="fas fa-plus mr-2"></i>Add Course
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Subject Management Cards -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-book fa-3x text-dark"></i>
+                    </div>
+                    <h5 class="card-title">Manage Subjects</h5>
+                    <p class="card-text">View and manage all subjects</p>
+                    <a href="{% url 'manage_subject' %}" class="btn btn-dark">
+                      <i class="fas fa-eye mr-2"></i>View Subjects
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-plus-circle fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Add Subject</h5>
+                    <p class="card-text">Add new subjects to the system</p>
+                    <a href="{% url 'add_subject' %}" class="btn btn-primary">
+                      <i class="fas fa-plus mr-2"></i>Add Subject
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Session Management Cards -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-graduation-cap fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Manage Sessions</h5>
+                    <p class="card-text">View and manage academic sessions</p>
+                    <a href="{% url 'manage_session' %}" class="btn btn-success">
+                      <i class="fas fa-eye mr-2"></i>View Sessions
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-plus-circle fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">Add Session</h5>
+                    <p class="card-text">Add new academic sessions</p>
+                    <a href="{% url 'add_session' %}" class="btn btn-info">
+                      <i class="fas fa-plus mr-2"></i>Add Session
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Attendance Management Card -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-calendar-alt fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">View Attendance</h5>
+                    <p class="card-text">Monitor student and staff attendance</p>
+                    <a href="{% url 'admin_view_attendance' %}" class="btn btn-warning">
+                      <i class="fas fa-eye mr-2"></i>View Attendance
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Feedback Management Cards -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-comments fa-3x text-danger"></i>
+                    </div>
+                    <h5 class="card-title">Student Feedback</h5>
+                    <p class="card-text">Review student feedback and messages</p>
+                    <a href="{% url 'student_feedback_message' %}" class="btn btn-danger">
+                      <i class="fas fa-eye mr-2"></i>View Feedback
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-comments fa-3x text-secondary"></i>
+                    </div>
+                    <h5 class="card-title">Staff Feedback</h5>
+                    <p class="card-text">Review staff feedback and messages</p>
+                    <a href="{% url 'staff_feedback_message' %}" class="btn btn-secondary">
+                      <i class="fas fa-eye mr-2"></i>View Feedback
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Leave Management Cards -->
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-calendar-alt fa-3x text-dark"></i>
+                    </div>
+                    <h5 class="card-title">Student Leave</h5>
+                    <p class="card-text">Manage student leave requests</p>
+                    <a href="{% url 'student_leave_view' %}" class="btn btn-dark">
+                      <i class="fas fa-eye mr-2"></i>View Leave
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-3 col-md-6 mb-4">
+                <div class="card education-card h-100">
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <i class="fas fa-calendar-alt fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Staff Leave</h5>
+                    <p class="card-text">Manage staff leave requests</p>
+                    <a href="{% url 'staff_leave_view' %}" class="btn btn-primary">
+                      <i class="fas fa-eye mr-2"></i>View Leave
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- List Dashboard (Default View) -->
+          <div id="listDashboard">
+            <!-- Small boxes (Stat box) -->
+            <div class="row">
+              <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-info education-card">
+                  <div class="inner">
+                    <h3>{{ all_student_count }}</h3>
+                    <p><i class="fas fa-user-graduate mr-1"></i>Total Students</p>
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-user-graduate"></i>
+                  </div>
+                  <a href="{% url 'manage_student' %}" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+              </div>
+              <!-- ./col -->
+              <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-danger education-card">
+                  <div class="inner">
+                    <h3>{{ staff_count }}</h3>
+                    <p><i class="fas fa-chalkboard-teacher mr-1"></i>Total Staff</p>
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                  </div>
+                  <a href="{% url 'manage_staff' %}" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+              </div>
+              <!-- ./col -->
+              
+              <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-warning education-card">
+                  <div class="inner">
+                    <h3>{{ course_count }}</h3>
+                    <p><i class="fas fa-book mr-1"></i>Total Courses</p>
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-book"></i>
+                  </div>
+                  <a href="{% url 'manage_course' %}" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+              </div>
+              <!-- ./col -->
+              <div class="col-lg-3 col-6">
+                <!-- small box -->
+                <div class="small-box bg-success education-card">
+                  <div class="inner">
+                    <h3>{{ subject_count }}</h3>
+                    <p><i class="fas fa-graduation-cap mr-1"></i>Total Subjects</p>
+                  </div>
+                  <div class="icon">
+                    <i class="fas fa-graduation-cap"></i>
+                  </div>
+                  <a href="{% url 'manage_subject' %}" class="small-box-footer">View Details <i class="fas fa-arrow-circle-right"></i></a>
+                </div>
+              </div>
+              <!-- ./col -->
               
             </div>
+            <!-- /.row -->
+            <div class="row">
+              <div class="col-lg-6">
+                <!-- PIE CHART -->
+                <div class="card card-primary education-card">
+                  <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-pie mr-2"></i>Student and Staff Distribution</h3>
+
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="pieChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+              </div>
+
+              <div class="col-lg-6">
+                <!-- DONUT CHART -->
+                <div class="card card-info education-card">
+                  <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-donut mr-2"></i>Subjects per Course</h3>
+
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="donutChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+                
+              </div>
+            </div>
+
+            <div class="row">
+
+              <div class="col-lg-6">
+                <!-- PIE CHART -->
+                <div class="card card-success education-card">
+                  <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-pie mr-2"></i>Students per Course</h3>
+
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="pieChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+                  </div>
+              </div>
+
+              <div class="col-lg-6">
+                <!-- PIE CHART -->
+                <div class="card card-warning education-card">
+                  <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-chart-pie mr-2"></i>Students per Subject</h3>
+
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                      </button>
+                      <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <canvas id="pieChart3" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                  <!-- /.card-body -->
+              </div>
+              </div>
+            </div>
+
+          <div class="row">
+            <div class="col-lg-12">
+              <!-- BAR CHART -->
+              <div class="card card-primary education-card">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Staff Attendance vs Leave</h3>
+
+                  <div class="card-tools">
+                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
+                    </button>
+                    <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="chart">
+                    <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+                  </div>
+                </div>
+                <!-- /.card-body -->
+              </div>
+              <!-- /.card -->
+            </div>
+
+
+            <div class="col-lg-6">
+              
+            </div>
+          
           </div>
 
           <div class="row">
-
-            <div class="col-lg-6">
-              <!-- PIE CHART -->
-              <div class="card card-info">
+            <div class="col-lg-12">
+              <!-- BAR CHART -->
+              <div class="card card-info education-card">
                 <div class="card-header">
-                  <h3 class="card-title">Total Student in Each Course</h3>
+                  <h3 class="card-title"><i class="fas fa-chart-bar mr-2"></i>Student Attendance vs Leave</h3>
 
                   <div class="card-tools">
                     <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
@@ -130,91 +456,23 @@
                   </div>
                 </div>
                 <div class="card-body">
-                  <canvas id="pieChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                </div>
-                <!-- /.card-body -->
-                </div>
-            </div>
-
-            <div class="col-lg-6">
-              <!-- PIE CHART -->
-              <div class="card card-info">
-                <div class="card-header">
-                  <h3 class="card-title">Total Students in Each Subject</h3>
-
-                  <div class="card-tools">
-                    <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                    </button>
-                    <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
+                  <div class="chart">
+                    <canvas id="barChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
                   </div>
                 </div>
-                <div class="card-body">
-                  <canvas id="pieChart3" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                </div>
                 <!-- /.card-body -->
-            </div>
-            </div>
-          </div>
-
-        <div class="row">
-          <div class="col-lg-12">
-            <!-- BAR CHART -->
-            <div class="card card-success">
-              <div class="card-header">
-                <h3 class="card-title">Staff Attendance vs Leave</h3>
-
-                <div class="card-tools">
-                  <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                  </button>
-                  <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
-                </div>
               </div>
-              <div class="card-body">
-                <div class="chart">
-                  <canvas id="barChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                </div>
-              </div>
-              <!-- /.card-body -->
+              <!-- /.card -->
             </div>
-            <!-- /.card -->
-          </div>
 
 
-          <div class="col-lg-6">
-            
-          </div>
-        
-        </div>
-
-        <div class="row">
-          <div class="col-lg-12">
-            <!-- BAR CHART -->
-            <div class="card card-success">
-              <div class="card-header">
-                <h3 class="card-title">Student Attendance vs Leave</h3>
-
-                <div class="card-tools">
-                  <button type="button" class="btn btn-tool" data-card-widget="collapse"><i class="fas fa-minus"></i>
-                  </button>
-                  <button type="button" class="btn btn-tool" data-card-widget="remove"><i class="fas fa-times"></i></button>
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="chart">
-                  <canvas id="barChart2" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                </div>
-              </div>
-              <!-- /.card-body -->
+            <div class="col-lg-6">
+              
             </div>
-            <!-- /.card -->
+          
           </div>
 
-
-          <div class="col-lg-6">
-            
           </div>
-        
-        </div>
 
         </div><!-- /.container-fluid -->
       </section>
@@ -225,6 +483,21 @@
 
   <script>
     $(document).ready(function(){
+      // View Toggle Functionality
+      $('#listViewBtn').click(function() {
+        $('#listDashboard').show();
+        $('#gridDashboard').hide();
+        $('#listViewBtn').addClass('active');
+        $('#gridViewBtn').removeClass('active');
+      });
+
+      $('#gridViewBtn').click(function() {
+        $('#gridDashboard').show();
+        $('#listDashboard').hide();
+        $('#gridViewBtn').addClass('active');
+        $('#listViewBtn').removeClass('active');
+      });
+
       var donutChartCanvas = $('#pieChart').get(0).getContext('2d')
       var pieData        = {
         labels: [
