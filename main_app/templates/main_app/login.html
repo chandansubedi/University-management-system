@@ -1,0 +1,200 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>University Management System | Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="{% static 'plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:400,700|Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
+    <style>
+        body.login-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e0e7ef 0%, #c7d2fe 100%) fixed;
+            position: relative;
+        }
+        body.login-page::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('https://www.transparenttextures.com/patterns/cubes.png') repeat;
+            opacity: 0.08;
+            z-index: 0;
+        }
+        .login-box, .glass-card {
+            position: relative;
+            z-index: 1;
+        }
+        .login-logo {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .login-logo img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            box-shadow: 0 4px 24px rgba(37,99,235,0.13);
+            margin-bottom: 0.7rem;
+        }
+        .login-logo span {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #2563eb;
+            letter-spacing: 1.5px;
+            display: block;
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.85);
+            border-radius: 22px;
+            box-shadow: 0 8px 32px rgba(37,99,235,0.13);
+            backdrop-filter: blur(6px);
+            padding: 2.5rem 2rem 2rem 2rem;
+            border: 1.5px solid #e0e7ef;
+        }
+        .login-card-body {
+            padding: 0;
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        .login-box-msg {
+            font-size: 1.25rem;
+            color: #22223b;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .input-group {
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1.3rem;
+            background: #f8fafc;
+            border: 1.5px solid #bfc9d9;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.04);
+        }
+        .input-group .form-control {
+            border: none;
+            background: transparent;
+            font-size: 1.08rem;
+            padding: 1rem 1.1rem;
+        }
+        .input-group .input-group-text {
+            background: transparent;
+            border: none;
+            color: #2563eb;
+            font-size: 1.2rem;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            background: #e0e7ef;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.15rem;
+            box-shadow: 0 2px 8px rgba(37,99,235,0.10);
+            padding: 0.9rem 0;
+            margin-top: 0.5rem;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #38bdf8 0%, #2563eb 100%);
+            box-shadow: 0 4px 16px rgba(37,99,235,0.18);
+        }
+        .icheck-primary label {
+            font-weight: 500;
+            color: #64748b;
+        }
+        .alert-danger {
+            border-radius: 10px;
+            font-size: 1.02rem;
+        }
+        .forgot-link {
+            display: block;
+            text-align: right;
+            margin-top: 1.2rem;
+            color: #2563eb;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.18s;
+        }
+        .forgot-link:hover {
+            color: #38bdf8;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body class="hold-transition login-page">
+    <div class="login-box">
+        <div class="login-logo" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem;">
+            <span class="fa-stack fa-2x" style="margin-bottom: 0;">
+                <i class="fas fa-circle fa-stack-2x" style="color: #2563eb;"></i>
+                <i class="fas fa-graduation-cap fa-stack-1x fa-inverse" style="color: #fff; font-size: 2.2rem;"></i>
+            </span>
+            <span style="font-size: 2.2rem; font-weight: 800; color: #2563eb; letter-spacing: 1.5px; display: block; text-align: center; line-height: 1.1;">University Management System</span>
+        </div>
+        <div class="glass-card">
+            <div class="login-card-body">
+                <p class="login-box-msg">Sign in to your account</p>
+                {% if messages %}
+                <div class="col-12">
+                    {% for message in messages %}
+                    {% if message.tags == 'error' %}
+                    <div class="alert alert-danger text-center ">
+                        {{message }}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <form action="doLogin/" method="post">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input required type="email" name='email' class="form-control" placeholder="Email">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-envelope"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input required type="password" name='password' class="form-control" placeholder="Password">
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-lock"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-7">
+                            <div class="icheck-primary">
+                                <input type="checkbox" id="remember">
+                                <label for="remember">
+                                    Remember Me
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-5">
+                            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                        </div>
+                    </div>
+                </form>
+                <a href="{% url 'password_reset' %}" class="forgot-link">I forgot my password</a>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+    <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
+</body>
+
+</html>
