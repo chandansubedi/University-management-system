@@ -4,26 +4,24 @@
                         
                                 {% comment %} Display Messages {% endcomment %}
                                 {% if messages %}
-                                <div class="form-group">
                                 <div class="col-12">
                                     {% for message in messages %}
                                     {% if message.tags == "error" %}
-                                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                         </div>
                                     {% elif message.tags == "success" %}
-                                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                         </div>
                                     {% endif %}
                                     {% endfor %}
-                                </div>
                                 </div>
                                 {% endif %}
 
@@ -32,12 +30,56 @@
                             {% comment %} Adding Form with All inputs Here {% endcomment %}
 
                             {% for field in form %}
-                                <div class="form-group">
-
+                                <div class="form-group-enhanced">
                                     {{ field.errors }}
-                                    {{ field.label_tag }}
-                                    {{ field }}
-
+                                    <label for="{{ field.id_for_label }}">
+                                        {% if field.field.widget.input_type == "email" %}
+                                            <i class="fas fa-envelope mr-2"></i>
+                                        {% elif field.field.widget.input_type == "text" %}
+                                            <i class="fas fa-signature mr-2"></i>
+                                        {% elif field.field.widget.input_type == "password" %}
+                                            <i class="fas fa-lock mr-2"></i>
+                                        {% elif field.field.widget.input_type == "file" %}
+                                            <i class="fas fa-file-upload mr-2"></i>
+                                        {% elif field.field.widget.input_type == "select" %}
+                                            <i class="fas fa-list mr-2"></i>
+                                        {% else %}
+                                            <i class="fas fa-edit mr-2"></i>
+                                        {% endif %}
+                                        {{ field.label }}
+                                    </label>
+                                    {% if field.field.widget.input_type == "textarea" %}
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-edit"></i></span>
+                                            </div>
+                                            {{ field }}
+                                        </div>
+                                    {% elif field.field.widget.input_type == "select" %}
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fas fa-list"></i></span>
+                                            </div>
+                                            {{ field }}
+                                        </div>
+                                    {% else %}
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                {% if field.field.widget.input_type == "email" %}
+                                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                                {% elif field.field.widget.input_type == "text" %}
+                                                    <span class="input-group-text"><i class="fas fa-signature"></i></span>
+                                                {% elif field.field.widget.input_type == "password" %}
+                                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                {% elif field.field.widget.input_type == "file" %}
+                                                    <span class="input-group-text"><i class="fas fa-file-upload"></i></span>
+                                                {% else %}
+                                                    <span class="input-group-text"><i class="fas fa-edit"></i></span>
+                                                {% endif %}
+                                            </div>
+                                            {{ field }}
+                                        </div>
+                                    {% endif %}
                                 </div>
                             {% endfor %%}
 
@@ -47,7 +89,7 @@
                         </div>
                         <!-- /.card-body -->
 
-                        <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">{{ button_text }}</button>
+                        <div class="form-footer">
+                        <button type="submit" class="btn btn-primary btn-enhanced">{{ button_text }}</button>
                         </div>
                     </form>

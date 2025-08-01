@@ -11,14 +11,14 @@
 <section class="content">
         <div class="container-fluid">
 
-            <div class="row">
-                <div class="col-md-12">
-                    <!-- general form elements -->
-                    <div class="card card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title">Edit Staff</h3>
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <!-- Enhanced form -->
+                    <div class="enhanced-form">
+                    <div class="form-header">
+                        <h3><i class="fas fa-user-edit mr-2"></i>Edit Staff Member</h3>
+                        <p class="text-muted">Update the details for staff member: {{ staff.admin.username }}</p>
                     </div>
-                    <!-- /.card-header -->
                     <!-- form start -->
                     <form role="form" method="POST" action="{% url 'edit_staff_save' %}">
                         {% csrf_token %}
@@ -26,19 +26,18 @@
                         
                                 {% comment %} Display Messages {% endcomment %}
                                 {% if messages %}
-                                <div class="form-group">
                                 <div class="col-12">
                                     {% for message in messages %}
                                     {% if message.tags == "error" %}
-                                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                         </div>
                                     {% elif message.tags == "success" %}
-                                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
@@ -46,19 +45,28 @@
                                     {% endif %}
                                     {% endfor %}
                                 </div>
-                                </div>
                                 {% endif %}
                             
 
                         <div class="card-body">
-                            <div class="form-group">
-                                <label>Email address</label>
-                                <input type="email" class="form-control" name="email" value="{{ staff.admin.email }}">
+                            <div class="form-group-enhanced">
+                                <label for="id_email"><i class="fas fa-envelope mr-2"></i>Email address</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    </div>
+                                    <input type="email" class="form-control" name="email" value="{{ staff.admin.email }}" id="id_email">
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Username</label>
-                                <input type="text" class="form-control" name="username" value="{{ staff.admin.username }}">
+                            <div class="form-group-enhanced">
+                                <label for="id_username"><i class="fas fa-user mr-2"></i>Username</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" name="username" value="{{ staff.admin.username }}" id="id_username">
+                                </div>
                             </div>
 
                             {% comment %} <div class="form-group">
@@ -66,20 +74,50 @@
                                 <input type="password" class="form-control" name="password" value="{{ staff.admin.password }}">
                             </div> {% endcomment %}
 
-                            <div class="form-group">
-                                <label>First Name</label>
-                                <input type="text" class="form-control" name="first_name" value="{{ staff.admin.first_name }}">
+                            <div class="form-group-enhanced">
+                                <label for="id_first_name"><i class="fas fa-signature mr-2"></i>First Name</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-signature"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" name="first_name" value="{{ staff.admin.first_name }}" id="id_first_name">
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Last Name</label>
-                                <input type="text" class="form-control" name="last_name" value="{{ staff.admin.last_name }}">
-                                <input type="hidden" name="staff_id" value="{{ staff.admin.id }}" />
+                            <div class="form-group-enhanced">
+                                <label for="id_last_name"><i class="fas fa-signature mr-2"></i>Last Name</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-signature"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" name="last_name" value="{{ staff.admin.last_name }}" id="id_last_name">
+                                    <input type="hidden" name="staff_id" value="{{ staff.admin.id }}" />
+                                </div>
+                            </div>
+                            
+                            <div class="form-group-enhanced">
+                                <label for="id_address"><i class="fas fa-map-marker-alt mr-2"></i>Address</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                                    </div>
+                                    <textarea class="form-control" name="address" id="id_address">{{ staff.address }}</textarea>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Address</label>
-                                <textarea class="form-control" name="address">{{ staff.address }}</textarea>
+                            <div class="form-group-enhanced">
+                                <label for="id_course"><i class="fas fa-graduation-cap mr-2"></i>Course</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-graduation-cap"></i></span>
+                                    </div>
+                                    <select class="form-control" name="course" id="id_course">
+                                        <option value="">Select Course</option>
+                                        {% for course in courses %}
+                                        <option value="{{ course.id }}" {% if staff.course_id.id == course.id %}selected{% endif %}>{{ course.course_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             </div>
 
                             
@@ -88,8 +126,8 @@
                         </div>
                         <!-- /.card-body -->
 
-                        <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">Update Staff</button>
+                        <div class="form-footer">
+                        <button type="submit" class="btn btn-primary btn-enhanced">Update Staff</button>
                         </div>
                     </form>
                     </div>

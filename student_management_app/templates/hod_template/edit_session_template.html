@@ -11,14 +11,14 @@
 <section class="content">
         <div class="container-fluid">
 
-            <div class="row">
-                <div class="col-md-12">
-                    <!-- general form elements -->
-                    <div class="card card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title">Edit Session Year</h3>
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <!-- Enhanced form -->
+                    <div class="enhanced-form">
+                    <div class="form-header">
+                        <h3><i class="fas fa-calendar-edit mr-2"></i>Edit Session Year</h3>
+                        <p class="text-muted">Update the details for session year</p>
                     </div>
-                    <!-- /.card-header -->
                     <!-- form start -->
                     <form role="form" method="POST" action="{% url 'edit_session_save' %}">
                         {% csrf_token %}
@@ -26,19 +26,18 @@
                         
                                 {% comment %} Display Messages {% endcomment %}
                                 {% if messages %}
-                                <div class="form-group">
                                 <div class="col-12">
                                     {% for message in messages %}
                                     {% if message.tags == "error" %}
-                                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                         </div>
                                     {% elif message.tags == "success" %}
-                                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
@@ -46,27 +45,36 @@
                                     {% endif %}
                                     {% endfor %}
                                 </div>
-                                </div>
                                 {% endif %}
                             
 
                         <div class="card-body">
-                            <div class="form-group">
-                                <label>Session Start Year </label>
-                                <input type="date" class="form-control" name="session_start_year" value="{{ session_year.session_start_year|date:'Y-m-d' }}">
+                            <div class="form-group-enhanced">
+                                <label for="id_session_start_year"><i class="fas fa-calendar-alt mr-2"></i>Session Start Year</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                    </div>
+                                    <input type="date" class="form-control" name="session_start_year" value="{{ session_year.session_start_year|date:'Y-m-d' }}" id="id_session_start_year">
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label>Session End Year </label>
-                                <input type="date" class="form-control" name="session_end_year" value="{{ session_year.session_end_year|date:'Y-m-d' }}">
+                            <div class="form-group-enhanced">
+                                <label for="id_session_end_year"><i class="fas fa-calendar-alt mr-2"></i>Session End Year</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                    </div>
+                                    <input type="date" class="form-control" name="session_end_year" value="{{ session_year.session_end_year|date:'Y-m-d' }}" id="id_session_end_year">
+                                </div>
                             </div>
 
                         </div>
                         <!-- /.card-body -->
 
-                        <div class="card-footer">
+                        <div class="form-footer">
                         <input type="hidden" name="session_id" value="{{ session_year.id }}" />
-                        <button type="submit" class="btn btn-primary">Update Session Year</button>
+                        <button type="submit" class="btn btn-primary btn-enhanced">Update Session Year</button>
                         </div>
                     </form>
                     </div>

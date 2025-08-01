@@ -274,10 +274,12 @@ def update_attendance_data(request):
 def staff_profile(request):
     user = CustomUser.objects.get(id=request.user.id)
     staff = Staffs.objects.get(admin=user)
+    courses = Courses.objects.all()
 
     context={
         "user": user,
-        "staff": staff
+        "staff": staff,
+        "courses": courses
     }
     return render(request, 'staff_template/staff_profile.html', context)
 
@@ -291,6 +293,7 @@ def staff_profile_update(request):
         last_name = request.POST.get('last_name')
         password = request.POST.get('password')
         address = request.POST.get('address')
+        course_id = request.POST.get('course')
 
         try:
             customuser = CustomUser.objects.get(id=request.user.id)
@@ -302,6 +305,9 @@ def staff_profile_update(request):
 
             staff = Staffs.objects.get(admin=customuser.id)
             staff.address = address
+            if course_id:
+                course_obj = Courses.objects.get(id=course_id)
+                staff.course_id = course_obj
             staff.save()
 
             messages.success(request, "Profile Updated Successfully")

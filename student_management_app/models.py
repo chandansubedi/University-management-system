@@ -29,18 +29,6 @@ class AdminHOD(models.Model):
 
 
 
-
-
-class Staffs(models.Model):
-    id = models.AutoField(primary_key=True)
-    admin = models.OneToOneField(CustomUser, on_delete = models.CASCADE)
-    address = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    objects = models.Manager()
-
-
-
 class Courses(models.Model):
     id = models.AutoField(primary_key=True)
     course_name = models.CharField(max_length=255)
@@ -50,6 +38,17 @@ class Courses(models.Model):
 
     # def __str__(self):
 	#     return self.course_name
+
+
+
+class Staffs(models.Model):
+    id = models.AutoField(primary_key=True)
+    admin = models.OneToOneField(CustomUser, on_delete = models.CASCADE)
+    address = models.TextField()
+    course_id = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
 
 
 
@@ -77,6 +76,7 @@ class Students(models.Model):
     objects = models.Manager()
 
 
+
 class Attendance(models.Model):
     # Subject Attendance
     id = models.AutoField(primary_key=True)
@@ -86,6 +86,7 @@ class Attendance(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+
 
 
 class AttendanceReport(models.Model):
@@ -99,6 +100,7 @@ class AttendanceReport(models.Model):
     objects = models.Manager()
 
 
+
 class LeaveReportStudent(models.Model):
     id = models.AutoField(primary_key=True)
     student_id = models.ForeignKey(Students, on_delete=models.CASCADE)
@@ -108,6 +110,7 @@ class LeaveReportStudent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+
 
 
 class LeaveReportStaff(models.Model):
@@ -121,6 +124,7 @@ class LeaveReportStaff(models.Model):
     objects = models.Manager()
 
 
+
 class FeedBackStudent(models.Model):
     id = models.AutoField(primary_key=True)
     student_id = models.ForeignKey(Students, on_delete=models.CASCADE)
@@ -129,6 +133,7 @@ class FeedBackStudent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+
 
 
 class FeedBackStaffs(models.Model):
@@ -151,6 +156,7 @@ class NotificationStudent(models.Model):
     objects = models.Manager()
 
 
+
 class NotificationStaffs(models.Model):
     id = models.AutoField(primary_key=True)
     stafff_id = models.ForeignKey(Staffs, on_delete=models.CASCADE)
@@ -158,6 +164,7 @@ class NotificationStaffs(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+
 
 
 class StudentResult(models.Model):
@@ -169,6 +176,7 @@ class StudentResult(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+
 
 
 #Creating Django Signals
@@ -197,6 +205,3 @@ def save_user_profile(sender, instance, **kwargs):
         instance.staffs.save()
     if instance.user_type == 3:
         instance.students.save()
-    
-
-

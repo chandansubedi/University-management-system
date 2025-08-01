@@ -77,6 +77,16 @@
                             </div>
 
                             <div class="form-group">
+                                <label>Course </label>
+                                <select class="form-control" name="course">
+                                    <option value="">Select Course</option>
+                                    {% for course in courses %}
+                                    <option value="{{ course.id }}" {% if staff.course_id.id == course.id %}selected{% endif %}>{{ course.course_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
                                 <label>Password </label>
                                 <input type="text" class="form-control" name="password" placeholder="Fill only if you want to change Password.">
                             </div>

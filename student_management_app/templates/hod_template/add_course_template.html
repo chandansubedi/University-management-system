@@ -11,14 +11,14 @@
 <section class="content">
         <div class="container-fluid">
 
-            <div class="row">
-                <div class="col-md-12">
-                    <!-- general form elements -->
-                    <div class="card card-primary">
-                    <div class="card-header">
-                        <h3 class="card-title">Add Course</h3>
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <!-- Enhanced form -->
+                    <div class="enhanced-form">
+                    <div class="form-header">
+                        <h3><i class="fas fa-plus-circle mr-2"></i>Add New Course</h3>
+                        <p class="text-muted">Fill in the details below to add a new course</p>
                     </div>
-                    <!-- /.card-header -->
                     <!-- form start -->
                     <form role="form" method="POST" action="{% url 'add_course_save' %}">
                         {% csrf_token %}
@@ -26,19 +26,18 @@
                         
                                 {% comment %} Display Messages {% endcomment %}
                                 {% if messages %}
-                                <div class="form-group">
                                 <div class="col-12">
                                     {% for message in messages %}
                                     {% if message.tags == "error" %}
-                                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
                                         </div>
                                     {% elif message.tags == "success" %}
-                                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="margin-top: 10px;">
-                                        {{ message }}
+                                        <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fas fa-check-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
@@ -46,21 +45,25 @@
                                     {% endif %}
                                     {% endfor %}
                                 </div>
-                                </div>
                                 {% endif %}
                             
 
                         <div class="card-body">
-                            <div class="form-group">
-                                <label>Course Name </label>
-                                <input type="text" class="form-control" name="course" placeholder="Enter Course">
+                            <div class="form-group-enhanced">
+                                <label for="id_course"><i class="fas fa-graduation-cap mr-2"></i>Course Name</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-graduation-cap"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" name="course" placeholder="Enter Course" id="id_course">
+                                </div>
                             </div>
 
                         </div>
                         <!-- /.card-body -->
 
-                        <div class="card-footer">
-                        <button type="submit" class="btn btn-primary">Add Course</button>
+                        <div class="form-footer">
+                        <button type="submit" class="btn btn-primary btn-enhanced">Add Course</button>
                         </div>
                     </form>
                     </div>

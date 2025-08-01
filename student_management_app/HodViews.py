@@ -89,7 +89,11 @@ def admin_home(request):
 
 
 def add_staff(request):
-    return render(request, "hod_template/add_staff_template.html")
+    courses = Courses.objects.all()
+    context = {
+        "courses": courses
+    }
+    return render(request, "hod_template/add_staff_template.html", context)
 
 
 def add_staff_save(request):
@@ -103,10 +107,14 @@ def add_staff_save(request):
         email = request.POST.get('email')
         password = request.POST.get('password')
         address = request.POST.get('address')
+        course_id = request.POST.get('course')
 
         try:
             user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=2)
             user.staffs.address = address
+            if course_id:
+                course_obj = Courses.objects.get(id=course_id)
+                user.staffs.course_id = course_obj
             user.save()
             messages.success(request, "Staff Added Successfully!")
             return redirect('add_staff')
@@ -126,10 +134,12 @@ def manage_staff(request):
 
 def edit_staff(request, staff_id):
     staff = Staffs.objects.get(admin=staff_id)
+    courses = Courses.objects.all()
 
     context = {
         "staff": staff,
-        "id": staff_id
+        "id": staff_id,
+        "courses": courses
     }
     return render(request, "hod_template/edit_staff_template.html", context)
 
@@ -144,6 +154,7 @@ def edit_staff_save(request):
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         address = request.POST.get('address')
+        course_id = request.POST.get('course')
 
         try:
             # INSERTING into Customuser Model
@@ -157,6 +168,9 @@ def edit_staff_save(request):
             # INSERTING into Staff Model
             staff_model = Staffs.objects.get(admin=staff_id)
             staff_model.address = address
+            if course_id:
+                course_obj = Courses.objects.get(id=course_id)
+                staff_model.course_id = course_obj
             staff_model.save()
 
             messages.success(request, "Staff Updated Successfully.")
