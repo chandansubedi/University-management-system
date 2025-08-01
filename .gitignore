@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+ss/
+env/
+
+
+>>>>>>> 6191ba86272bb72f1f483df84aa835e76e5a9d5a
 # Created by https://www.toptal.com/developers/gitignore/api/django
 # Edit at https://www.toptal.com/developers/gitignore?templates=django
 
