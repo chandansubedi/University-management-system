@@ -9,94 +9,374 @@
 {% load static %}
 
 <section class="content">
-        <div class="container-fluid">
-
-            <div class="row justify-content-center">
-                <div class="col-md-12">
-                    <a class="btn btn-primary btn-enhanced" href="{% url 'add_subject' %}" role="button"><i class="fas fa-plus-circle mr-2"></i>Add Subject</a> <br/>&nbsp;
-
-                    {% if messages %}
-                    <div class="col-12">
-                        {% for message in messages %}
-                        {% if message.tags == "error" %}
-                            <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            </div>
-                        {% elif message.tags == "success" %}
-                            <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle mr-2"></i>{{ message }}
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            </div>
-                        {% endif %}
-                        {% endfor %}
+    <div class="container-fluid manage-subject-container">
+        
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2 class="mb-0"><i class="fas fa-book mr-2"></i>Manage Subjects</h2>
+                        <p class="text-muted mb-0">Organize and manage subjects by their associated courses</p>
                     </div>
-                    {% endif %}
+                    <div>
+                        <a class="btn btn-primary btn-enhanced" href="{% url 'add_subject' %}" role="button">
+                            <i class="fas fa-plus-circle mr-2"></i>Add New Subject
+                        </a>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="row">
-                <div class="col-md-12">
-                    <!-- general form elements -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title"><i class="fas fa-book mr-2"></i>Subject Details</h3>
+        <!-- Messages -->
+        {% if messages %}
+        <div class="row mb-4">
+            <div class="col-12">
+                {% for message in messages %}
+                {% if message.tags == "error" %}
+                    <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% elif message.tags == "success" %}
+                    <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle mr-2"></i>{{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
-                            <div class="card-tools">
-                            <div class="input-group input-group-sm" style="width: 200px;">
-                                <input type="text" name="table_search" class="form-control float-right" placeholder="Search Subject">
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ total_subjects }}</h4>
+                                <p class="mb-0">Total Subjects</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-book fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ courses.count }}</h4>
+                                <p class="mb-0">Active Courses</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-graduation-cap fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ total_subjects }}</h4>
+                                <p class="mb-0">Assigned Subjects</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ unassigned_subjects.count }}</h4>
+                                <p class="mb-0">Unassigned Subjects</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                <div class="input-group-append">
-                                <button type="submit" class="btn btn-default"><i class="fas fa-search"></i></button>
+        <!-- Course Cards Section -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3"><i class="fas fa-graduation-cap mr-2"></i>Subjects by Course</h4>
+            </div>
+        </div>
+
+        <div class="row">
+            {% for course in courses %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card course-card h-100" onclick="window.location.href='{% url 'course_subject_list' course.id %}'">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-graduation-cap mr-2"></i>{{ course.course_name }}</h5>
+                            <span class="badge badge-light">
+                                {% for course_key, subjects_list in course_subject_data.items %}
+                                    {% if course_key == course %}
+                                        {{ subjects_list|length }}
+                                    {% endif %}
+                                {% endfor %} Subjects
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="course-info">
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                Created: {{ course.created_at|date:"M d, Y" }}
+                            </p>
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                {{ course.course_name }} Program
+                            </p>
+                        </div>
+                        
+                        <!-- Subject Preview -->
+                        <div class="subject-preview">
+                            <h6 class="text-muted mb-2">Recent Subjects:</h6>
+                            {% for course_key, subjects_list in course_subject_data.items %}
+                                {% if course_key == course %}
+                                    {% for subject in subjects_list|slice:":3" %}
+                                    <div class="d-flex align-items-center mb-2 subject-preview-item" 
+                                         onclick="event.stopPropagation(); window.location.href='{% url 'subject_detail' subject.id %}'">
+                                        <div class="subject-icon mr-2">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="fas fa-book text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="font-weight-bold">{{ subject.subject_name }}</div>
+                                            <small class="text-muted">{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</small>
+                                        </div>
+                                        <div class="ml-2">
+                                            <i class="fas fa-chevron-right text-muted"></i>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <div class="text-center text-muted py-3">
+                                        <i class="fas fa-book fa-2x mb-2"></i>
+                                        <p class="mb-0">No subjects assigned yet</p>
+                                    </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Click to view all subjects</span>
+                            <i class="fas fa-arrow-right text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Unassigned Subjects Section -->
+        {% if unassigned_subjects %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-gradient-warning text-white">
+                        <h5 class="mb-0"><i class="fas fa-exclamation-triangle mr-2"></i>Unassigned Subjects</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for subject in unassigned_subjects %}
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="card subject-card h-100" onclick="window.location.href='{% url 'subject_detail' subject.id %}'">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="subject-icon mr-3">
+                                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                                                    <i class="fas fa-book text-white"></i>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ subject.subject_name }}</h6>
+                                                <p class="text-muted mb-1">{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</p>
+                                                <small class="text-warning">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>No course assigned
+                                                </small>
+                                            </div>
+                                            <div class="ml-2">
+                                                <i class="fas fa-chevron-right text-muted"></i>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            </div>
+                            {% endfor %}
                         </div>
-                        <!-- /.card-header -->
-                        <div class="card-body table-responsive p-0">
-                            <table class="table table-hover text-nowrap">
-                            <thead>
-                                <tr>
-                                <th>ID</th>
-                                <th>Subject Name</th>
-                                <th>Course</th>
-                                <th>Staff</th>
-                                <th>Created At</th>
-                                <th>Updated At</th>
-                                <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for subject in subjects %}
-                                <tr>
-                                <td>{{ subject.id }}</td>
-                                <td>{{ subject.subject_name }}</td>
-                                <td>{{ subject.course_id.course_name }}</td>
-                                <td>{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</td>
-                                <td>{{ subject.created_at }}</td>
-                                <td>{{ subject.updated_at }}</td>
-                                <td>
-                                    <a href="{% url 'edit_subject' subject.id %}" class="btn btn-success btn-sm mr-1"><i class="fas fa-edit"></i> Edit</a>
-                                    <a href="{% url 'delete_subject' subject.id %}" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Delete</a>
-                                </td>
-                                </tr>
-                                {% endfor %}
-                                
-                            </tbody>
-                            </table>
-                        </div>
-                        <!-- /.card-body -->
-                        </div>
-                    <!-- /.card -->
-
+                    </div>
                 </div>
             </div>
+        </div>
+        {% endif %}
 
-        </div><!-- /.container-fluid -->
-      </section>
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-bolt mr-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'add_subject' %}" class="btn btn-primary btn-block">
+                                    <i class="fas fa-plus-circle mr-2"></i>Add Subject
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'manage_course' %}" class="btn btn-info btn-block">
+                                    <i class="fas fa-graduation-cap mr-2"></i>Manage Courses
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'manage_staff' %}" class="btn btn-success btn-block">
+                                    <i class="fas fa-chalkboard-teacher mr-2"></i>Manage Staff
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'admin_view_attendance' %}" class="btn btn-warning btn-block">
+                                    <i class="fas fa-clipboard-check mr-2"></i>View Attendance
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  {% endblock main_content %}
+    </div>
+</section>
+
+<style>
+.manage-subject-container {
+    padding-left: 30px;
+    padding-right: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.course-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.subject-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.subject-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.subject-preview-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.subject-preview-item:hover {
+    background-color: rgba(0,123,255,0.1);
+}
+
+.subject-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Make components smaller */
+.card {
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    padding: 0.75rem 1rem;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.card-footer {
+    padding: 0.75rem 1rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-lg {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h4 {
+    font-size: 1.25rem;
+}
+
+h5 {
+    font-size: 1.1rem;
+}
+
+h6 {
+    font-size: 1rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .manage-subject-container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .course-card, .subject-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+
+{% endblock main_content %}

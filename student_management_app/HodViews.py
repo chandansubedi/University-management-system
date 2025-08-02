@@ -125,9 +125,23 @@ def add_staff_save(request):
 
 
 def manage_staff(request):
+    courses = Courses.objects.all()
     staffs = Staffs.objects.all()
+    
+    # Group staff by course
+    course_staff_data = {}
+    for course in courses:
+        course_staff = Staffs.objects.filter(course_id=course)
+        course_staff_data[course] = course_staff
+    
+    # Staff without course assignment
+    unassigned_staff = Staffs.objects.filter(course_id__isnull=True)
+    
     context = {
-        "staffs": staffs
+        "courses": courses,
+        "staffs": staffs,
+        "course_staff_data": course_staff_data,
+        "unassigned_staff": unassigned_staff
     }
     return render(request, "hod_template/manage_staff_template.html", context)
 
@@ -180,6 +194,40 @@ def edit_staff_save(request):
             messages.error(request, "Failed to Update Staff.")
             return redirect('/edit_staff/'+staff_id)
 
+
+
+def staff_detail(request, staff_id):
+    staff = Staffs.objects.get(admin=staff_id)
+    subjects = Subjects.objects.filter(staff_id=staff.admin.id)
+    
+    # Get attendance data for subjects taught by this staff
+    attendance_count = 0
+    if subjects:
+        attendance_count = Attendance.objects.filter(subject_id__in=subjects).count()
+    
+    # Get leave data
+    leave_count = LeaveReportStaff.objects.filter(staff_id=staff.id, leave_status=1).count()
+    
+    context = {
+        "staff": staff,
+        "subjects": subjects,
+        "attendance_count": attendance_count,
+        "leave_count": leave_count
+    }
+    return render(request, "hod_template/staff_detail_template.html", context)
+
+
+def course_staff_list(request, course_id):
+    course = Courses.objects.get(id=course_id)
+    staffs = Staffs.objects.filter(course_id=course)
+    subjects = Subjects.objects.filter(course_id=course)
+    
+    context = {
+        "course": course,
+        "staffs": staffs,
+        "subjects": subjects
+    }
+    return render(request, "hod_template/course_staff_list_template.html", context)
 
 
 def delete_staff(request, staff_id):
@@ -398,9 +446,26 @@ def add_student_save(request):
 
 
 def manage_student(request):
+    courses = Courses.objects.all()
     students = Students.objects.all()
+    
+    # Group students by course
+    course_student_data = {}
+    total_assigned = 0
+    for course in courses:
+        course_students = Students.objects.filter(course_id=course)
+        course_student_data[course] = course_students
+        total_assigned += course_students.count()
+    
+    # Students without course assignment
+    unassigned_students = Students.objects.filter(course_id__isnull=True)
+    
     context = {
-        "students": students
+        "courses": courses,
+        "students": students,
+        "course_student_data": course_student_data,
+        "unassigned_students": unassigned_students,
+        "total_assigned": total_assigned
     }
     return render(request, 'hod_template/manage_student_template.html', context)
 
@@ -494,6 +559,40 @@ def edit_student_save(request):
             return redirect('/edit_student/'+student_id)
 
 
+def course_student_list(request, course_id):
+    course = Courses.objects.get(id=course_id)
+    students = Students.objects.filter(course_id=course)
+    session_years = SessionYearModel.objects.all()
+    
+    context = {
+        "course": course,
+        "students": students,
+        "session_years": session_years
+    }
+    return render(request, "hod_template/course_student_list_template.html", context)
+
+
+def student_detail(request, student_id):
+    student = Students.objects.get(admin=student_id)
+    
+    # Get attendance data for this student
+    attendance_count = AttendanceReport.objects.filter(student_id=student.id, status=True).count()
+    
+    # Get leave data
+    leave_count = LeaveReportStudent.objects.filter(student_id=student.id, leave_status=1).count()
+    
+    # Get feedback count
+    feedback_count = FeedBackStudent.objects.filter(student_id=student.id).count()
+    
+    context = {
+        "student": student,
+        "attendance_count": attendance_count,
+        "leave_count": leave_count,
+        "feedback_count": feedback_count
+    }
+    return render(request, "hod_template/student_detail_template.html", context)
+
+
 def delete_student(request, student_id):
     student = Students.objects.get(admin=student_id)
     try:
@@ -540,9 +639,26 @@ def add_subject_save(request):
 
 
 def manage_subject(request):
+    courses = Courses.objects.all()
     subjects = Subjects.objects.all()
+    
+    # Group subjects by course
+    course_subject_data = {}
+    total_subjects = 0
+    for course in courses:
+        course_subjects = Subjects.objects.filter(course_id=course)
+        course_subject_data[course] = course_subjects
+        total_subjects += course_subjects.count()
+    
+    # Subjects without course assignment
+    unassigned_subjects = Subjects.objects.filter(course_id__isnull=True)
+    
     context = {
-        "subjects": subjects
+        "courses": courses,
+        "subjects": subjects,
+        "course_subject_data": course_subject_data,
+        "unassigned_subjects": unassigned_subjects,
+        "total_subjects": total_subjects
     }
     return render(request, 'hod_template/manage_subject_template.html', context)
 
@@ -590,6 +706,40 @@ def edit_subject_save(request):
             return HttpResponseRedirect(reverse("edit_subject", kwargs={"subject_id":subject_id}))
             # return redirect('/edit_subject/'+subject_id)
 
+
+
+def course_subject_list(request, course_id):
+    course = Courses.objects.get(id=course_id)
+    subjects = Subjects.objects.filter(course_id=course)
+    staffs = CustomUser.objects.filter(user_type='2')
+    
+    context = {
+        "course": course,
+        "subjects": subjects,
+        "staffs": staffs
+    }
+    return render(request, "hod_template/course_subject_list_template.html", context)
+
+
+def subject_detail(request, subject_id):
+    subject = Subjects.objects.get(id=subject_id)
+    
+    # Get attendance data for this subject
+    attendance_count = Attendance.objects.filter(subject_id=subject.id).count()
+    
+    # Get student count enrolled in this subject's course
+    student_count = Students.objects.filter(course_id=subject.course_id).count()
+    
+    # Get staff teaching this subject
+    staff = subject.staff_id
+    
+    context = {
+        "subject": subject,
+        "attendance_count": attendance_count,
+        "student_count": student_count,
+        "staff": staff
+    }
+    return render(request, "hod_template/subject_detail_template.html", context)
 
 
 def delete_subject(request, subject_id):

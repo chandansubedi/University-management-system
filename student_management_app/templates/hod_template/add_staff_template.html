@@ -1,7 +1,7 @@
 {% extends 'hod_template/base_template.html' %}
 
 {% block page_title %}
-    Add Staff
+    <i class="fas fa-user-plus mr-2"></i>Add Staff Member
 {% endblock page_title %}
 
 {% block main_content %}
@@ -9,211 +9,566 @@
 {% load static %}
 
 <section class="content">
-        <div class="container-fluid">
+    <div class="container-fluid">
+        <!-- Back Button -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <a href="{% url 'manage_staff' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Staff Management
+                </a>
+            </div>
+        </div>
 
-            <div class="row justify-content-center">
-                <div class="col-md-8 col-lg-6">
-                    <!-- Enhanced form -->
-                    <div class="enhanced-form">
-                    <div class="form-header">
-                        <h3><i class="fas fa-user-plus mr-2"></i>Add New Staff Member</h3>
-                        <p class="text-muted">Fill in the details below to add a new staff member</p>
+        <!-- Split Screen Layout -->
+        <div class="row">
+            <!-- Left Side - Form -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user-plus mr-2"></i>Add New Staff Member
+                        </h4>
+                        <p class="mb-0 mt-2">Fill in the details below to add a new faculty member</p>
                     </div>
-                    <!-- form start -->
-                    <form role="form" method="POST" action="{% url 'add_staff_save' %}">
-                        {% csrf_token %}
-
-                        
-                                {% comment %} Display Messages {% endcomment %}
-                                {% if messages %}
-                                <div class="col-12">
-                                    {% for message in messages %}
-                                    {% if message.tags == "error" %}
-                                        <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
+                    <div class="card-body">
+                        <!-- Messages -->
+                        {% if messages %}
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                {% for message in messages %}
+                                {% if message.tags == "error" %}
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                         <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
-                                        </div>
-                                    {% elif message.tags == "success" %}
-                                        <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
+                                    </div>
+                                {% elif message.tags == "success" %}
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
                                         <i class="fas fa-check-circle mr-2"></i>{{ message }}
                                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                                             <span aria-hidden="true">&times;</span>
                                         </button>
-                                        </div>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
+                                    </div>
                                 {% endif %}
-                            
-
-                        <div class="card-body">
-                            <div class="form-group-enhanced">
-                                <label for="id_email"><i class="fas fa-envelope mr-2"></i>Email address</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                    </div>
-                                    <input type="email" class="form-control" name="email" placeholder="Enter email" id="id_email">
-                                </div>
+                                {% endfor %}
                             </div>
-
-                            <div class="form-group-enhanced">
-                                <label for="id_username"><i class="fas fa-user mr-2"></i>Username</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                                    </div>
-                                    <input type="text" class="form-control" name="username" placeholder="Username" id="id_username">
-                                </div>
-                            </div>
-
-                            <div class="form-group-enhanced">
-                                <label for="id_password"><i class="fas fa-lock mr-2"></i>Password</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                    </div>
-                                    <input type="password" class="form-control" name="password" placeholder="Password" id="id_password">
-                                </div>
-                            </div>
-
-                            <div class="form-group-enhanced">
-                                <label for="id_first_name"><i class="fas fa-signature mr-2"></i>First Name</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-signature"></i></span>
-                                    </div>
-                                    <input type="text" class="form-control" name="first_name" placeholder="First Name" id="id_first_name">
-                                </div>
-                            </div>
-
-                            <div class="form-group-enhanced">
-                                <label for="id_last_name"><i class="fas fa-signature mr-2"></i>Last Name</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-signature"></i></span>
-                                    </div>
-                                    <input type="text" class="form-control" name="last_name" placeholder="Last Name" id="id_last_name">
-                                </div>
-                            </div>
-
-                            <div class="form-group-enhanced">
-                                <label for="id_address"><i class="fas fa-map-marker-alt mr-2"></i>Address</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
-                                    </div>
-                                    <textarea class="form-control" name="address" placeholder="Address" id="id_address"></textarea>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group-enhanced">
-                                <label for="id_course"><i class="fas fa-graduation-cap mr-2"></i>Course</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-graduation-cap"></i></span>
-                                    </div>
-                                    <select class="form-control" name="course" id="id_course">
-                                        <option value="">Select Course</option>
-                                        {% for course in courses %}
-                                        <option value="{{ course.id }}">{{ course.course_name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            
-
-
                         </div>
-                        <!-- /.card-body -->
+                        {% endif %}
 
-                        <div class="form-footer">
-                        <button type="submit" class="btn btn-primary btn-enhanced">Add Staff</button>
-                        </div>
-                    </form>
+                        <!-- Form -->
+                        <form role="form" method="POST" action="{% url 'add_staff_save' %}" class="staff-form">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <!-- Personal Information Section -->
+                                <div class="col-md-6">
+                                    <div class="form-section">
+                                        <h5 class="section-title">
+                                            <i class="fas fa-user-circle mr-2"></i>Personal Information
+                                        </h5>
+                                        
+                                        <div class="form-group">
+                                            <label for="id_first_name">
+                                                <i class="fas fa-user mr-1"></i>First Name
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-user"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control" name="first_name" 
+                                                       placeholder="Enter first name" id="id_first_name" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="id_last_name">
+                                                <i class="fas fa-user mr-1"></i>Last Name
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-user"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control" name="last_name" 
+                                                       placeholder="Enter last name" id="id_last_name" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="id_email">
+                                                <i class="fas fa-at mr-1"></i>Email Address
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-at"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="email" class="form-control" name="email" 
+                                                       placeholder="Enter email address" id="id_email" required>
+                                            </div>
+                                            <div class="email-validation"></div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="id_address">
+                                                <i class="fas fa-home mr-1"></i>Address
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-home"></i>
+                                                    </span>
+                                                </div>
+                                                <textarea class="form-control" name="address" 
+                                                          placeholder="Enter address" id="id_address" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Account Information Section -->
+                                <div class="col-md-6">
+                                    <div class="form-section">
+                                        <h5 class="section-title">
+                                            <i class="fas fa-shield-alt mr-2"></i>Account Information
+                                        </h5>
+                                        
+                                        <div class="form-group">
+                                            <label for="id_username">
+                                                <i class="fas fa-id-card mr-1"></i>Username
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-id-card"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control" name="username" 
+                                                       placeholder="Enter username" id="id_username" required>
+                                            </div>
+                                            <div class="username-validation"></div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="id_password">
+                                                <i class="fas fa-key mr-1"></i>Password
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-key"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="password" class="form-control" name="password" 
+                                                       placeholder="Enter password" id="id_password" required>
+                                                <div class="input-group-append">
+                                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="id_course">
+                                                <i class="fas fa-chalkboard-teacher mr-1"></i>Course Assignment
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-chalkboard-teacher"></i>
+                                                    </span>
+                                                </div>
+                                                <select class="form-control" name="course" id="id_course">
+                                                    <option value="" selected disabled>Select Course (Optional)</option>
+                                                    {% for course in courses %}
+                                                    <option value="{{ course.id }}">{{ course.course_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>
+                                                <i class="fas fa-user-tag mr-1"></i>Account Type
+                                            </label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text">
+                                                        <i class="fas fa-user-tag"></i>
+                                                    </span>
+                                                </div>
+                                                <input type="text" class="form-control" value="Staff Member" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="form-actions">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-user-plus mr-2"></i>Add Staff Member
+                                        </button>
+                                        <a href="{% url 'manage_staff' %}" class="btn btn-secondary btn-lg ml-3">
+                                            <i class="fas fa-times mr-2"></i>Cancel
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
                     </div>
-                    <!-- /.card -->
-
                 </div>
             </div>
 
-        </div><!-- /.container-fluid -->
-      </section>
+            <!-- Right Side - Information Panel -->
+            <div class="col-lg-4">
+                <div class="info-panel">
+                    <!-- Quick Stats -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-gradient-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar mr-2"></i>Quick Stats
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-item">
+                                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                                <h4 class="mb-1">{{ courses.count }}</h4>
+                                <p class="text-muted mb-0">Available Courses</p>
+                            </div>
+                        </div>
+                    </div>
 
-  {% endblock main_content %}
 
-    {% block custom_js %}
-    {% comment %} Checking if email and username already exists or not usin Ajax {% endcomment %}
 
-    <script>
-        $(document).ready(function(){
-            // keyup event will be triggered when user leaves keyboard
-            $("#id_email").keyup(function(){
-                var email = $(this).val();
+                    <!-- Available Courses -->
+                    <div class="card">
+                        <div class="card-header bg-gradient-warning text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-graduation-cap mr-2"></i>Available Courses
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if courses %}
+                                <div class="course-list">
+                                    {% for course in courses %}
+                                    <div class="course-item">
+                                        <i class="fas fa-graduation-cap text-primary mr-2"></i>
+                                        <span>{{ course.course_name }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-3">
+                                    <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+                                    <p class="text-muted mb-0">No courses available</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-                if(email!=""){
-                    $.ajax({
-                        url : '{% url 'check_email_exist' %}',
-                        type : 'POST',
-                        data : {email:email}
-                    })
-                    .done(function(response){
-                        //console.log(response);
+<style>
+.staff-form {
+    padding: 20px 0;
+}
 
-                        if(response == "True"){
-                            $(".email_error").remove();
-                            $("<span class='email_error' style='color: red; padding: 5px; font-weight: bold;'> Email Not Available. </span>").insertAfter("#id_email")
-                        }
-                        else{
-                            $(".email_error").remove();
-                            $("<span class='email_error' style='color: green; padding: 5px; font-weight: bold;'> Email Available. </span>").insertAfter("#id_email")
-                        }
-                    })
+.form-section {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-blue);
+}
 
-                    .fail(function(){
-                        console.log("Failed");
-                    })
-                }
-                else{
-                    $(".email_error").remove();
-                }
-                
+.section-title {
+    color: var(--primary-blue);
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.input-group-text {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    min-width: 45px;
+    justify-content: center;
+}
+
+.form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    line-height: 1.5;
+    height: auto;
+    min-height: 45px;
+}
+
+select.form-control {
+    padding: 12px 15px;
+    font-size: 14px;
+    line-height: 1.5;
+    height: auto;
+    min-height: 45px;
+    background-size: 16px 12px;
+    background-position: right 12px center;
+    padding-right: 40px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+select.form-control option {
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 8px 12px;
+}
+
+.form-control:focus {
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+}
+
+.form-control:focus + .input-group-append .btn {
+    border-color: var(--secondary-blue);
+}
+
+.form-actions {
+    text-align: center;
+    padding: 20px 0;
+    border-top: 2px solid #e9ecef;
+    margin-top: 20px;
+}
+
+.info-panel {
+    position: sticky;
+    top: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 10px;
+}
+
+.guideline-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.course-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.course-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.course-item:last-child {
+    border-bottom: none;
+}
+
+.email-validation, .username-validation {
+    margin-top: 5px;
+    font-size: 0.875rem;
+}
+
+.email_error, .username_error {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-weight: 600;
+    margin-top: 5px;
+    display: block;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #059669 100%) !important;
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%) !important;
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+}
+
+.btn-primary {
+    background: var(--gradient-primary) !important;
+    border: none !important;
+    padding: 12px 30px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-primary:hover {
+    background: var(--gradient-secondary) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.btn-secondary {
+    background: #6c757d !important;
+    border: none !important;
+    padding: 12px 30px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.btn-secondary:hover {
+    background: #5a6268 !important;
+    transform: translateY(-2px) !important;
+}
+
+@media (max-width: 768px) {
+    .info-panel {
+        position: static;
+        margin-top: 20px;
+    }
+    
+    .form-section {
+        margin-bottom: 15px;
+        padding: 15px;
+    }
+}
+</style>
+
+{% endblock main_content %}
+
+{% block custom_js %}
+<script>
+$(document).ready(function(){
+    // Password toggle functionality
+    $('#togglePassword').click(function(){
+        const passwordField = $('#id_password');
+        const icon = $(this).find('i');
+        
+        if (passwordField.attr('type') === 'password') {
+            passwordField.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            passwordField.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
+
+    // Email validation
+    $("#id_email").keyup(function(){
+        var email = $(this).val();
+        var validationDiv = $(this).siblings('.email-validation');
+
+        if(email != ""){
+            $.ajax({
+                url: '{% url "check_email_exist" %}',
+                type: 'POST',
+                data: {email: email}
             })
-
-            $("#id_username").keyup(function(){
-                var username = $(this).val();
+            .done(function(response){
+                $(".email_error").remove();
                 
-                if(username!=""){
-                    $.ajax({
-                        url : '{% url 'check_username_exist' %}',
-                        type : 'POST',
-                        data : {username:username}
-                    })
-                    .done(function(response){
-                        //console.log(response);
-
-                        if(response == "True"){
-                            $(".username_error").remove();
-                            $("<span class='username_error' style='color: red; padding: 5px; font-weight: bold;'> Username Not Available. </span>").insertAfter("#id_username")
-                        }
-                        else{
-                            $(".username_error").remove();
-                            $("<span class='username_error' style='color: green; padding: 5px; font-weight: bold;'> Username Available. </span>").insertAfter("#id_username")
-                        }
-                    })
-
-                    .fail(function(){
-                        console.log("Failed");
-                    })
+                if(response == "True"){
+                    validationDiv.html('<span class="text-danger"><i class="fas fa-times-circle mr-1"></i>Email already exists</span>');
+                } else {
+                    validationDiv.html('<span class="text-success"><i class="fas fa-check-circle mr-1"></i>Email available</span>');
                 }
-                else{
-                    $(".username_error").remove();
-                }
-                
             })
-        })
-    </script>
+            .fail(function(){
+                console.log("Failed to validate email");
+            });
+        } else {
+            validationDiv.html('');
+            $(".email_error").remove();
+        }
+    });
 
-  {% endblock custom_js %}
+    // Username validation
+    $("#id_username").keyup(function(){
+        var username = $(this).val();
+        var validationDiv = $(this).siblings('.username-validation');
+        
+        if(username != ""){
+            $.ajax({
+                url: '{% url "check_username_exist" %}',
+                type: 'POST',
+                data: {username: username}
+            })
+            .done(function(response){
+                $(".username_error").remove();
+                
+                if(response == "True"){
+                    validationDiv.html('<span class="text-danger"><i class="fas fa-times-circle mr-1"></i>Username already exists</span>');
+                } else {
+                    validationDiv.html('<span class="text-success"><i class="fas fa-check-circle mr-1"></i>Username available</span>');
+                }
+            })
+            .fail(function(){
+                console.log("Failed to validate username");
+            });
+        } else {
+            validationDiv.html('');
+            $(".username_error").remove();
+        }
+    });
+
+    // Form validation
+    $('.staff-form').submit(function(e){
+        var isValid = true;
+        
+        // Check required fields
+        $('input[required], select[required]').each(function(){
+            if (!$(this).val()) {
+                $(this).addClass('is-invalid');
+                isValid = false;
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please fill in all required fields.');
+        }
+    });
+});
+</script>
+{% endblock custom_js %}

@@ -1,0 +1,457 @@
+{% extends 'hod_template/base_template.html' %}
+
+{% block page_title %}
+    {{ course.course_name }} - Subjects
+{% endblock page_title %}
+
+{% block main_content %}
+
+{% load static %}
+
+<section class="content">
+    <div class="container-fluid">
+        
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="{% url 'manage_subject' %}"><i class="fas fa-book mr-1"></i>Manage Subjects</a></li>
+                                <li class="breadcrumb-item active">{{ course.course_name }}</li>
+                            </ol>
+                        </nav>
+                        <h2 class="mb-0"><i class="fas fa-graduation-cap mr-2"></i>{{ course.course_name }}</h2>
+                        <p class="text-muted mb-0">Subject List & Management</p>
+                    </div>
+                    <div>
+                        <a class="btn btn-primary btn-enhanced" href="{% url 'add_subject' %}" role="button">
+                            <i class="fas fa-plus-circle mr-2"></i>Add Subject
+                        </a>
+                        <a class="btn btn-secondary btn-enhanced ml-2" href="{% url 'manage_subject' %}" role="button">
+                            <i class="fas fa-arrow-left mr-2"></i>Back to All Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Course Statistics -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-primary text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ subjects.count }}</h4>
+                                <p class="mb-0">Total Subjects</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-book fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-success text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ course.created_at|date:"Y" }}</h4>
+                                <p class="mb-0">Course Year</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-calendar-alt fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-info text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">{{ staffs.count }}</h4>
+                                <p class="mb-0">Teaching Staff</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-3">
+                <div class="card bg-gradient-warning text-white">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h4 class="mb-0">Active</h4>
+                                <p class="mb-0">Status</p>
+                            </div>
+                            <div class="align-self-center">
+                                <i class="fas fa-check-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-filter mr-2"></i>Filter Subjects</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="searchInput"><i class="fas fa-search mr-1"></i>Search by Subject Name</label>
+                                <input type="text" class="form-control" id="searchInput" placeholder="Enter subject name...">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="staffFilter"><i class="fas fa-chalkboard-teacher mr-1"></i>Teaching Staff</label>
+                                <select class="form-control" id="staffFilter">
+                                    <option value="">All Staff</option>
+                                    {% for staff in staffs %}
+                                    <option value="{{ staff.first_name }} {{ staff.last_name }}">
+                                        {{ staff.first_name }} {{ staff.last_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="sortBy"><i class="fas fa-sort mr-1"></i>Sort By</label>
+                                <select class="form-control" id="sortBy">
+                                    <option value="name">Subject Name (A-Z)</option>
+                                    <option value="name-desc">Subject Name (Z-A)</option>
+                                    <option value="staff">Staff Name (A-Z)</option>
+                                    <option value="date">Date Created</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <button class="btn btn-primary mr-2" onclick="applyFilters()">
+                                    <i class="fas fa-filter mr-1"></i>Apply Filters
+                                </button>
+                                <button class="btn btn-secondary" onclick="clearFilters()">
+                                    <i class="fas fa-times mr-1"></i>Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subjects Grid -->
+        <div class="row" id="subjectsGrid">
+            {% for subject in subjects %}
+            <div class="col-lg-4 col-md-6 mb-4 subject-item" 
+                 data-name="{{ subject.subject_name }}"
+                 data-staff="{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}"
+                 data-date="{{ subject.created_at|date:'Y-m-d' }}">
+                <div class="card subject-card h-100">
+                    <div class="card-header bg-gradient-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">{{ subject.subject_name }}</h6>
+                            <span class="badge badge-light">{{ subject.course_id.course_name }}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="subject-icon mr-3">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                    <i class="fas fa-book text-white fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ subject.subject_name }}</h6>
+                                <p class="text-muted mb-1">{{ subject.course_id.course_name }}</p>
+                                <small class="text-info">
+                                    <i class="fas fa-chalkboard-teacher mr-1"></i>{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="subject-info">
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">Course:</small><br>
+                                    <strong>{{ subject.course_id.course_name }}</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Created:</small><br>
+                                    <strong>{{ subject.created_at|date:"M d, Y" }}</strong>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-12">
+                                    <small class="text-muted">Teaching Staff:</small><br>
+                                    <strong>{{ subject.staff_id.first_name }} {{ subject.staff_id.last_name }}</strong>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <small class="text-muted">Updated:</small><br>
+                                    <strong>{{ subject.updated_at|date:"M d, Y" }}</strong>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">Status:</small><br>
+                                    <span class="badge badge-success">Active</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'subject_detail' subject.id %}" class="btn btn-info btn-sm mr-1">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <a href="{% url 'edit_subject' subject.id %}" class="btn btn-success btn-sm mr-1">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </div>
+                            <div>
+                                <a href="{% url 'delete_subject' subject.id %}" class="btn btn-danger btn-sm" 
+                                   onclick="return confirm('Are you sure you want to delete this subject?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Subjects Found</h4>
+                        <p class="text-muted">There are no subjects assigned to this course yet.</p>
+                        <a href="{% url 'add_subject' %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle mr-2"></i>Add First Subject
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Results Summary -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="text-muted">Showing <span id="visibleCount">{{ subjects.count }}</span> of {{ subjects.count }} subjects</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-outline-primary btn-sm" onclick="exportSubjects()">
+                                    <i class="fas fa-download mr-1"></i>Export List
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+.subject-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.subject-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.subject-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.subject-info {
+    font-size: 0.9rem;
+}
+
+.breadcrumb {
+    background: none;
+    padding: 0;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+
+/* Make components smaller */
+.card {
+    margin-bottom: 1rem;
+}
+
+.card-header {
+    padding: 0.75rem 1rem;
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+.card-footer {
+    padding: 0.75rem 1rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+}
+
+h4 {
+    font-size: 1.25rem;
+}
+
+h5 {
+    font-size: 1.1rem;
+}
+
+h6 {
+    font-size: 1rem;
+}
+</style>
+
+<script>
+function applyFilters() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const staffFilter = document.getElementById('staffFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+    
+    const subjectItems = document.querySelectorAll('.subject-item');
+    let visibleCount = 0;
+    
+    subjectItems.forEach(item => {
+        const name = item.dataset.name.toLowerCase();
+        const staff = item.dataset.staff;
+        
+        let show = true;
+        
+        // Search filter
+        if (searchTerm && !name.includes(searchTerm)) {
+            show = false;
+        }
+        
+        // Staff filter
+        if (staffFilter && staff !== staffFilter) {
+            show = false;
+        }
+        
+        if (show) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('visibleCount').textContent = visibleCount;
+    
+    // Sort subjects
+    sortSubjects(sortBy);
+}
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('staffFilter').value = '';
+    document.getElementById('sortBy').value = 'name';
+    
+    const subjectItems = document.querySelectorAll('.subject-item');
+    subjectItems.forEach(item => {
+        item.style.display = 'block';
+    });
+    
+    document.getElementById('visibleCount').textContent = subjectItems.length;
+    sortSubjects('name');
+}
+
+function sortSubjects(sortBy) {
+    const subjectsGrid = document.getElementById('subjectsGrid');
+    const subjectItems = Array.from(document.querySelectorAll('.subject-item'));
+    
+    subjectItems.sort((a, b) => {
+        switch(sortBy) {
+            case 'name':
+                return a.dataset.name.localeCompare(b.dataset.name);
+            case 'name-desc':
+                return b.dataset.name.localeCompare(a.dataset.name);
+            case 'staff':
+                return a.dataset.staff.localeCompare(b.dataset.staff);
+            case 'date':
+                return new Date(a.dataset.date) - new Date(b.dataset.date);
+            default:
+                return 0;
+        }
+    });
+    
+    // Re-append sorted items
+    subjectItems.forEach(item => {
+        subjectsGrid.appendChild(item);
+    });
+}
+
+function exportSubjects() {
+    const visibleSubjects = Array.from(document.querySelectorAll('.subject-item:not([style*="display: none"])'));
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Subject Name,Course,Teaching Staff,Created Date,Updated Date\n";
+    
+    visibleSubjects.forEach(item => {
+        const name = item.dataset.name;
+        const course = item.querySelector('.text-muted').textContent;
+        const staff = item.dataset.staff;
+        const createdDate = item.dataset.date;
+        const updatedDate = item.querySelector('.subject-info .row:nth-child(3) strong').textContent;
+        
+        csvContent += `"${name}","${course}","${staff}","${createdDate}","${updatedDate}"\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "{{ course.course_name }}_subjects.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('staffFilter').addEventListener('change', applyFilters);
+    document.getElementById('sortBy').addEventListener('change', applyFilters);
+});
+</script>
+
+{% endblock main_content %} 
