@@ -806,7 +806,7 @@ def check_username_exist(request):
 
 
 def student_feedback_message(request):
-    feedbacks = FeedBackStudent.objects.all()
+    feedbacks = FeedBackStudent.objects.all().order_by('-created_at')
     context = {
         "feedbacks": feedbacks
     }
@@ -829,7 +829,7 @@ def student_feedback_message_reply(request):
 
 
 def staff_feedback_message(request):
-    feedbacks = FeedBackStaffs.objects.all()
+    feedbacks = FeedBackStaffs.objects.all().order_by('-created_at')
     context = {
         "feedbacks": feedbacks
     }
