@@ -108,6 +108,19 @@ def student_apply_leave_save(request):
         leave_date = request.POST.get('leave_date')
         leave_message = request.POST.get('leave_message')
 
+        # Server-side validation for past dates
+        from datetime import date
+        try:
+            selected_date = date.fromisoformat(leave_date)
+            today = date.today()
+            
+            if selected_date < today:
+                messages.error(request, "You cannot apply for leave on a past date. Please select today or a future date.")
+                return redirect('student_apply_leave')
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid date format.")
+            return redirect('student_apply_leave')
+
         student_obj = Students.objects.get(admin=request.user.id)
         try:
             leave_report = LeaveReportStudent(student_id=student_obj, leave_date=leave_date, leave_message=leave_message, leave_status=0)

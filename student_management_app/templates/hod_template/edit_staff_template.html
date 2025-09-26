@@ -120,8 +120,35 @@
                                 </div>
                             </div>
 
-                            
-
+                            <!-- Password Reset Section -->
+                            <div class="form-group-enhanced">
+                                <div class="card border-warning">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-key mr-2"></i>Password Reset</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group">
+                                            <label for="new_password"><i class="fas fa-lock mr-2"></i>New Password</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                </div>
+                                                <input type="password" class="form-control" name="new_password" id="new_password" placeholder="Enter new password (leave blank to keep current)">
+                                            </div>
+                                            <small class="form-text text-muted">Leave blank to keep the current password unchanged.</small>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="confirm_password"><i class="fas fa-lock mr-2"></i>Confirm New Password</label>
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                </div>
+                                                <input type="password" class="form-control" name="confirm_password" id="confirm_password" placeholder="Confirm new password">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
                         <!-- /.card-body -->
@@ -138,5 +165,37 @@
 
         </div><!-- /.container-fluid -->
       </section>
+
+<script>
+// Password validation
+document.addEventListener('DOMContentLoaded', function() {
+    const newPasswordField = document.getElementById('new_password');
+    const confirmPasswordField = document.getElementById('confirm_password');
+    const form = document.querySelector('form');
+    
+    function validatePasswords() {
+        const newPassword = newPasswordField.value;
+        const confirmPassword = confirmPasswordField.value;
+        
+        if (newPassword && confirmPassword && newPassword !== confirmPassword) {
+            confirmPasswordField.setCustomValidity('Passwords do not match');
+            return false;
+        } else {
+            confirmPasswordField.setCustomValidity('');
+            return true;
+        }
+    }
+    
+    newPasswordField.addEventListener('input', validatePasswords);
+    confirmPasswordField.addEventListener('input', validatePasswords);
+    
+    form.addEventListener('submit', function(e) {
+        if (!validatePasswords()) {
+            e.preventDefault();
+            alert('Passwords do not match. Please check and try again.');
+        }
+    });
+});
+</script>
 
   {% endblock main_content %}

@@ -51,7 +51,8 @@
                            
                             <div class="form-group">
                                 <label>Leave Date </label>
-                                <input type="date" name="leave_date" class="form-control" />
+                                <input type="date" name="leave_date" class="form-control" min="{% now 'Y-m-d' %}" />
+                                <small class="form-text text-muted">You can only apply for leave from today onwards.</small>
                             </div>
 
                             <div class="form-group">
@@ -126,5 +127,41 @@
   {% endblock main_content %}
 
 {% block custom_js %}
-
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const leaveDateInput = document.querySelector('input[name="leave_date"]');
+    const form = document.querySelector('form');
+    
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    leaveDateInput.setAttribute('min', today);
+    
+    // Additional validation on form submit
+    form.addEventListener('submit', function(e) {
+        const selectedDate = new Date(leaveDateInput.value);
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0); // Reset time to start of day
+        
+        if (selectedDate < todayDate) {
+            e.preventDefault();
+            alert('You cannot apply for leave on a past date. Please select today or a future date.');
+            leaveDateInput.focus();
+        }
+    });
+    
+    // Real-time validation when date changes
+    leaveDateInput.addEventListener('change', function() {
+        const selectedDate = new Date(this.value);
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+        
+        if (selectedDate < todayDate) {
+            this.setCustomValidity('Please select today or a future date');
+            this.reportValidity();
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+});
+</script>
 {% endblock custom_js %}

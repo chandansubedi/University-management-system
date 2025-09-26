@@ -1,7 +1,7 @@
 {% extends 'hod_template/base_template.html' %}
 
 {% block page_title %}
-    Leave Apply by Students
+    Leave Applications by Students
 {% endblock page_title %}
 
 {% block main_content %}
@@ -16,50 +16,115 @@
                     <!-- general form elements -->
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Leave Apply by Students</h3>
+                            <h3 class="card-title">
+                                <i class="fas fa-calendar-times mr-2"></i>Leave Applications by Students
+                            </h3>
+                            <div class="card-tools">
+                                <span class="badge badge-primary">{{ leaves|length }} Total Applications</span>
+                            </div>
                         </div>
                         <!-- /.card-header -->
 
-                        <div class="table-responsive">
-                            <table class="table">
-                                <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Student ID</th>
-                                    <th>Student Name</th>
-                                    <th>Leave Date</th>
-                                    <th>Leave Message</th>
-                                    <th>Applied On</th>
-                                    <th>Action</th>
-                                </tr>
-                                </thead>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="thead-dark">
+                                    <tr>
+                                        <th><i class="fas fa-user mr-1"></i>Student Name</th>
+                                        <th><i class="fas fa-graduation-cap mr-1"></i>Course</th>
+                                        <th><i class="fas fa-calendar mr-1"></i>Leave Date</th>
+                                        <th><i class="fas fa-comment mr-1"></i>Leave Message</th>
+                                        <th><i class="fas fa-clock mr-1"></i>Applied On</th>
+                                        <th><i class="fas fa-cogs mr-1"></i>Action</th>
+                                    </tr>
+                                    </thead>
 
-                                {% for leave in leaves %}
-                                <tbody>
-                                <tr>
-                                    <td>{{ leave.id }}</td>
-                                    <td>{{ leave.student_id.admin.id }}</td>
-                                    <td>{{ leave.student_id.admin.first_name }} {{ feedback.student_id.admin.last_name }}</td> 
-                                    <td>{{ leave.leave_date }}</td>
-                                    <td>{{ leave.leave_message }}</td>
-                                    <td>{{ leave.created_at }}</td>
-                                    <td>
-                                        {% if leave.leave_status == 0 %}
-                                            <a href="{% url 'student_leave_approve' leave_id=leave.id %}" class="btn btn-success">Approve</a>
-                                            <a href="{% url 'student_leave_reject' leave_id=leave.id %}" class="btn btn-danger">Reject</a>
-                                        {% elif leave.leave_status == 1 %}
-                                            <button class="btn btn-warning" disabled="disabled">Approved</button>
-                                        {% else %}
-                                            <button class="btn btn-danger" disabled="disabled">Rejected</button>
-                                        {% endif %}
-                                        
-                                    </td>
-                                </tr>
-                                </tbody>
-                                {% endfor %}
+                                    <tbody>
+                                    {% for leave in leaves %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'student_detail' leave.student_id.admin.id %}" class="text-decoration-none">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center mr-2" style="width: 35px; height: 35px;">
+                                                        <i class="fas fa-user-graduate"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong class="text-success">{{ leave.student_id.admin.first_name }} {{ leave.student_id.admin.last_name }}</strong>
+                                                        <br>
+                                                        <small class="text-muted">ID: {{ leave.student_id.admin.id }}</small>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if leave.student_id.course_id %}
+                                                <span class="badge badge-warning">
+                                                    <i class="fas fa-graduation-cap mr-1"></i>{{ leave.student_id.course_id.course_name }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-secondary">
+                                                    <i class="fas fa-question mr-1"></i>No Course Assigned
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <span class="badge badge-info">
+                                                <i class="fas fa-calendar mr-1"></i>{{ leave.leave_date }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="text-wrap" style="max-width: 300px;">
+                                                {{ leave.leave_message|truncatechars:100 }}
+                                                {% if leave.leave_message|length > 100 %}
+                                                    <button class="btn btn-link btn-sm p-0 ml-1" data-toggle="tooltip" title="{{ leave.leave_message }}">
+                                                        <i class="fas fa-eye text-info"></i>
+                                                    </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock mr-1"></i>{{ leave.created_at|date:"M d, Y H:i" }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            {% if leave.leave_status == 0 %}
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'student_leave_approve' leave_id=leave.id %}" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check mr-1"></i>Approve
+                                                    </a>
+                                                    <a href="{% url 'student_leave_reject' leave_id=leave.id %}" class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-times mr-1"></i>Reject
+                                                    </a>
+                                                </div>
+                                            {% elif leave.leave_status == 1 %}
+                                                <span class="badge badge-success">
+                                                    <i class="fas fa-check mr-1"></i>Approved
+                                                </span>
+                                            {% else %}
+                                                <span class="badge badge-danger">
+                                                    <i class="fas fa-times mr-1"></i>Rejected
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i class="fas fa-inbox fa-3x mb-3"></i>
+                                                <h5>No Leave Applications Found</h5>
+                                                <p>No students have applied for leave yet.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
 
-                            </table>
+                                </table>
+                            </div>
                         </div>
+                        <!-- /.card-body -->
                     
                     </div>
                     <!-- /.card -->
@@ -70,12 +135,38 @@
         </div><!-- /.container-fluid -->
       </section>
 
-      
-
   {% endblock main_content %}
 
   {% comment %} Custom JS to Identify the Reply and Post Reply {% endcomment %}
 
   {% block custom_js %}
-
+  <script>
+  $(document).ready(function() {
+      // Initialize tooltips
+      $('[data-toggle="tooltip"]').tooltip();
+      
+      // Add hover effects to clickable names
+      $('a[href*="student_detail"]').hover(
+          function() {
+              $(this).find('strong').addClass('text-decoration-underline');
+          },
+          function() {
+              $(this).find('strong').removeClass('text-decoration-underline');
+          }
+      );
+      
+      // Add confirmation for approve/reject actions
+      $('a[href*="approve"]').click(function(e) {
+          if (!confirm('Are you sure you want to approve this leave application?')) {
+              e.preventDefault();
+          }
+      });
+      
+      $('a[href*="reject"]').click(function(e) {
+          if (!confirm('Are you sure you want to reject this leave application?')) {
+              e.preventDefault();
+          }
+      });
+  });
+  </script>
   {% endblock custom_js %}

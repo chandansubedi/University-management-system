@@ -169,6 +169,13 @@ def edit_staff_save(request):
         last_name = request.POST.get('last_name')
         address = request.POST.get('address')
         course_id = request.POST.get('course')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # Validate password if provided
+        if new_password and new_password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return redirect('/edit_staff/'+staff_id)
 
         try:
             # INSERTING into Customuser Model
@@ -177,6 +184,14 @@ def edit_staff_save(request):
             user.last_name = last_name
             user.email = email
             user.username = username
+            
+            # Handle password reset
+            if new_password:
+                user.set_password(new_password)
+                messages.success(request, "Staff Updated Successfully. Password has been reset.")
+            else:
+                messages.success(request, "Staff Updated Successfully.")
+            
             user.save()
             
             # INSERTING into Staff Model
@@ -187,7 +202,6 @@ def edit_staff_save(request):
                 staff_model.course_id = course_obj
             staff_model.save()
 
-            messages.success(request, "Staff Updated Successfully.")
             return redirect('/edit_staff/'+staff_id)
 
         except:
@@ -512,6 +526,15 @@ def edit_student_save(request):
             course_id = form.cleaned_data['course_id']
             gender = form.cleaned_data['gender']
             session_year_id = form.cleaned_data['session_year_id']
+            
+            # Get password reset data
+            new_password = request.POST.get('new_password')
+            confirm_password = request.POST.get('confirm_password')
+
+            # Validate password if provided
+            if new_password and new_password != confirm_password:
+                messages.error(request, "Passwords do not match.")
+                return redirect('/edit_student/'+student_id)
 
             # Getting Profile Pic first
             # First Check whether the file is selected or not
@@ -531,6 +554,11 @@ def edit_student_save(request):
                 user.last_name = last_name
                 user.email = email
                 user.username = username
+                
+                # Handle password reset
+                if new_password:
+                    user.set_password(new_password)
+                
                 user.save()
 
                 # Then Update Students Table
@@ -550,10 +578,13 @@ def edit_student_save(request):
                 # Delete student_id SESSION after the data is updated
                 del request.session['student_id']
 
-                messages.success(request, "Student Updated Successfully!")
+                if new_password:
+                    messages.success(request, "Student Updated Successfully! Password has been reset.")
+                else:
+                    messages.success(request, "Student Updated Successfully!")
                 return redirect('/edit_student/'+student_id)
             except:
-                messages.success(request, "Failed to Uupdate Student.")
+                messages.error(request, "Failed to Update Student.")
                 return redirect('/edit_student/'+student_id)
         else:
             return redirect('/edit_student/'+student_id)
@@ -821,7 +852,7 @@ def staff_feedback_message_reply(request):
 
 
 def student_leave_view(request):
-    leaves = LeaveReportStudent.objects.all()
+    leaves = LeaveReportStudent.objects.all().order_by('-created_at')
     context = {
         "leaves": leaves
     }
@@ -842,7 +873,7 @@ def student_leave_reject(request, leave_id):
 
 
 def staff_leave_view(request):
-    leaves = LeaveReportStaff.objects.all()
+    leaves = LeaveReportStaff.objects.all().order_by('-created_at')
     context = {
         "leaves": leaves
     }

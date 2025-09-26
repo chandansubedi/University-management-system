@@ -96,6 +96,19 @@ def staff_apply_leave_save(request):
         leave_date = request.POST.get('leave_date')
         leave_message = request.POST.get('leave_message')
 
+        # Server-side validation for past dates
+        from datetime import date
+        try:
+            selected_date = date.fromisoformat(leave_date)
+            today = date.today()
+            
+            if selected_date < today:
+                messages.error(request, "You cannot apply for leave on a past date. Please select today or a future date.")
+                return redirect('staff_apply_leave')
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid date format.")
+            return redirect('staff_apply_leave')
+
         staff_obj = Staffs.objects.get(admin=request.user.id)
         try:
             leave_report = LeaveReportStaff(staff_id=staff_obj, leave_date=leave_date, leave_message=leave_message, leave_status=0)
