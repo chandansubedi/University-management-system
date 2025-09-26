@@ -122,7 +122,7 @@ def staff_apply_leave_save(request):
 
 def staff_feedback(request):
     staff_obj = Staffs.objects.get(admin=request.user.id)
-    feedback_data = FeedBackStaffs.objects.filter(staff_id=staff_obj)
+    feedback_data = FeedBackStaffs.objects.filter(staff_id=staff_obj).order_by('-created_at')
     context = {
         "feedback_data":feedback_data
     }

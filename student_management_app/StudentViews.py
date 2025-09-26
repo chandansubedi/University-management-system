@@ -134,7 +134,7 @@ def student_apply_leave_save(request):
 
 def student_feedback(request):
     student_obj = Students.objects.get(admin=request.user.id)
-    feedback_data = FeedBackStudent.objects.filter(student_id=student_obj)
+    feedback_data = FeedBackStudent.objects.filter(student_id=student_obj).order_by('-created_at')
     context = {
         "feedback_data": feedback_data
     }

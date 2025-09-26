@@ -806,22 +806,41 @@ def check_username_exist(request):
 
 
 def student_feedback_message(request):
-    feedbacks = FeedBackStudent.objects.all().order_by('-created_at')
+    # Get all students who have sent feedback
+    students_with_feedback = CustomUser.objects.filter(
+        user_type=3,  # Student users
+        students__feedbackstudent__isnull=False
+    ).distinct().order_by('first_name', 'last_name')
+    
+    # Group feedback by student
+    student_conversations = {}
+    for student in students_with_feedback:
+        feedbacks = FeedBackStudent.objects.filter(
+            student_id__admin=student
+        ).order_by('created_at')
+        if feedbacks.exists():
+            student_conversations[student] = list(feedbacks)
+    
     context = {
-        "feedbacks": feedbacks
+        "student_conversations": student_conversations
     }
     return render(request, 'hod_template/student_feedback_template.html', context)
 
 
 @csrf_exempt
 def student_feedback_message_reply(request):
-    feedback_id = request.POST.get('id')
+    student_id = request.POST.get('id')
     feedback_reply = request.POST.get('reply')
 
     try:
-        feedback = FeedBackStudent.objects.get(id=feedback_id)
-        feedback.feedback_reply = feedback_reply
-        feedback.save()
+        # Get the latest feedback from this student
+        student = CustomUser.objects.get(id=student_id, user_type=3)
+        student_obj = Students.objects.get(admin=student)
+        latest_feedback = FeedBackStudent.objects.filter(student_id=student_obj).latest('created_at')
+        
+        # Update the latest feedback with the reply
+        latest_feedback.feedback_reply = feedback_reply
+        latest_feedback.save()
         return HttpResponse("True")
 
     except:
@@ -829,22 +848,41 @@ def student_feedback_message_reply(request):
 
 
 def staff_feedback_message(request):
-    feedbacks = FeedBackStaffs.objects.all().order_by('-created_at')
+    # Get all staff who have sent feedback
+    staff_with_feedback = CustomUser.objects.filter(
+        user_type=2,  # Staff users
+        staffs__feedbackstaffs__isnull=False
+    ).distinct().order_by('first_name', 'last_name')
+    
+    # Group feedback by staff member
+    staff_conversations = {}
+    for staff in staff_with_feedback:
+        feedbacks = FeedBackStaffs.objects.filter(
+            staff_id__admin=staff
+        ).order_by('created_at')
+        if feedbacks.exists():
+            staff_conversations[staff] = list(feedbacks)
+    
     context = {
-        "feedbacks": feedbacks
+        "staff_conversations": staff_conversations
     }
     return render(request, 'hod_template/staff_feedback_template.html', context)
 
 
 @csrf_exempt
 def staff_feedback_message_reply(request):
-    feedback_id = request.POST.get('id')
+    staff_id = request.POST.get('id')
     feedback_reply = request.POST.get('reply')
 
     try:
-        feedback = FeedBackStaffs.objects.get(id=feedback_id)
-        feedback.feedback_reply = feedback_reply
-        feedback.save()
+        # Get the latest feedback from this staff member
+        staff = CustomUser.objects.get(id=staff_id, user_type=2)
+        staff_obj = Staffs.objects.get(admin=staff)
+        latest_feedback = FeedBackStaffs.objects.filter(staff_id=staff_obj).latest('created_at')
+        
+        # Update the latest feedback with the reply
+        latest_feedback.feedback_reply = feedback_reply
+        latest_feedback.save()
         return HttpResponse("True")
 
     except:

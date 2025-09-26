@@ -1,7 +1,7 @@
 {% extends 'hod_template/base_template.html' %}
 
 {% block page_title %}
-    Student Feedback Messages
+    Student Messages
 {% endblock page_title %}
 
 {% block main_content %}
@@ -15,45 +15,65 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">
-                            <i class="fas fa-comments mr-2"></i>Student Feedback Messages
+                            <i class="fas fa-comments mr-2"></i>Student Messages
                         </h3>
                         <div class="card-tools">
-                            <span class="badge badge-primary">{{ feedbacks|length }} Conversations</span>
+                            <span class="badge badge-primary">{{ student_conversations|length }} Conversations</span>
                         </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="row no-gutters">
                             <!-- Conversations List -->
                             <div class="col-md-4 border-right">
+                                <!-- Search Bar -->
+                                <div class="p-3 border-bottom">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="search-student" placeholder="Search students...">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
                                 <div class="conversations-list" style="height: 600px; overflow-y: auto;">
-                                    {% for feedback in feedbacks %}
-                                    <div class="conversation-item p-3 border-bottom conversation-card" data-feedback-id="{{ feedback.id }}" style="cursor: pointer;">
+                                    {% for student, messages in student_conversations.items %}
+                                    <div class="conversation-item p-3 border-bottom conversation-card" data-student-id="{{ student.id }}" style="cursor: pointer;">
                                         <div class="d-flex align-items-center">
                                             <div class="avatar-sm bg-success text-white rounded-circle d-flex align-items-center justify-content-center mr-3" style="width: 50px; height: 50px;">
                                                 <i class="fas fa-user-graduate"></i>
                                             </div>
                                             <div class="flex-grow-1">
                                                 <h6 class="mb-1 text-success">
-                                                    <a href="{% url 'student_detail' feedback.student_id.admin.id %}" class="text-decoration-none">
-                                                        {{ feedback.student_id.admin.first_name }} {{ feedback.student_id.admin.last_name }}
+                                                    <a href="{% url 'student_detail' student.id %}" class="text-decoration-none">
+                                                        {{ student.first_name }} {{ student.last_name }}
                                                     </a>
                                                 </h6>
                                                 <p class="mb-1 text-muted small">
-                                                    {% if feedback.feedback_reply %}
-                                                        <i class="fas fa-reply text-success mr-1"></i>Replied
-                                                    {% else %}
-                                                        <i class="fas fa-clock text-warning mr-1"></i>Pending Reply
-                                                    {% endif %}
+                                                    {% for message in messages reversed %}
+                                                        {% if forloop.first %}
+                                                            {% if message.feedback_reply %}
+                                                                <i class="fas fa-reply text-success mr-1"></i>{{ message.feedback_reply|truncatechars:30 }}
+                                                            {% else %}
+                                                                <i class="fas fa-comment text-success mr-1"></i>{{ message.feedback|truncatechars:30 }}
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    {% endfor %}
                                                 </p>
-                                                <small class="text-muted">{{ feedback.created_at|date:"M d, Y H:i" }}</small>
+                                                <small class="text-muted">
+                                                    {% for message in messages reversed %}
+                                                        {% if forloop.first %}
+                                                            {{ message.created_at|date:"M d, Y H:i" }}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </small>
                                             </div>
                                         </div>
                                     </div>
                                     {% empty %}
                                     <div class="text-center py-5">
                                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                                        <h5 class="text-muted">No Feedback Messages</h5>
-                                        <p class="text-muted">No students have sent feedback yet.</p>
+                                        <h5 class="text-muted">No Messages</h5>
+                                        <p class="text-muted">No students have sent messages yet.</p>
                                     </div>
                                     {% endfor %}
                                 </div>
@@ -69,8 +89,8 @@
                                                 <i class="fas fa-user-graduate"></i>
                                             </div>
                                             <div>
-                                                <h6 class="mb-0" id="chat-user-name"></h6>
-                                                <small class="text-muted" id="chat-user-info"></small>
+                                                <h6 class="mb-0" id="chat-student-name"></h6>
+                                                <small class="text-muted" id="chat-student-info"></small>
                                             </div>
                                         </div>
                                     </div>
@@ -80,7 +100,7 @@
                                         <div class="text-center py-5" id="no-message-selected">
                                             <i class="fas fa-comments fa-3x text-muted mb-3"></i>
                                             <h5 class="text-muted">Select a Conversation</h5>
-                                            <p class="text-muted">Choose a student from the list to view their feedback messages.</p>
+                                            <p class="text-muted">Choose a student from the list to view messages.</p>
                                         </div>
                                     </div>
                                     
@@ -88,11 +108,11 @@
                                     <div class="reply-area p-3 border-top bg-white" id="reply-area" style="display: none;">
                                         <form id="reply-form">
                                             {% csrf_token %}
-                                            <input type="hidden" id="reply_feedback_id" name="feedback_id">
+                                            <input type="hidden" id="reply_student_id" name="student_id">
                                             <div class="input-group">
                                                 <textarea class="form-control" id="reply_message" name="reply" rows="2" placeholder="Type your reply..." required></textarea>
                                                 <div class="input-group-append">
-                                                    <button class="btn btn-primary" type="submit" id="send-reply-btn">
+                                                    <button class="btn btn-success" type="submit" id="send-reply-btn">
                                                         <i class="fas fa-paper-plane"></i>
                                                     </button>
                                                 </div>
@@ -128,7 +148,7 @@
 }
 
 .message-sent {
-    background-color: #007bff;
+    background-color: #28a745;
     color: white;
     margin-left: auto;
     border-bottom-right-radius: 5px;
@@ -165,199 +185,208 @@
 }
 </style>
 
-      {% comment %} Modal to Reply Feedback {% endcomment %}
-      <!-- Modal -->
-        <div class="modal fade" id="replyModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Reply Feedback</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p>Reply to: <b><span id="reply_name"></span></b></p>
-                <input type="hidden" id="reply_id" name="reply_id" />
-                <textarea class="form-control" rows="5" id="reply_message"></textarea>
-            </div>
-            <div class="modal-footer">
-                {% comment %} <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> {% endcomment %}
-                <button type="button" class="btn btn-primary btn-block" id="reply_button">Reply</button>
-            </div>
-            </div>
-        </div>
-        </div>
+{% endblock main_content %}
 
-  {% endblock main_content %}
-
-  {% comment %} Custom JS to Identify the Reply and Post Reply {% endcomment %}
-
-  {% block custom_js %}
-    <script>
-        $(document).ready(function(){
-            // Store feedback data for easy access
-            const feedbackData = {
-                {% for feedback in feedbacks %}
-                {{ feedback.id }}: {
-                    id: {{ feedback.id }},
-                    student_name: "{{ feedback.student_id.admin.first_name }} {{ feedback.student_id.admin.last_name }}",
-                    student_id: {{ feedback.student_id.admin.id }},
-                    session: "{{ feedback.student_id.session_year_id.session_start_year }} - {{ feedback.student_id.session_year_id.session_end_year }}",
-                    message: "{{ feedback.feedback|escapejs }}",
-                    reply: "{{ feedback.feedback_reply|escapejs }}",
-                    created_at: "{{ feedback.created_at|date:'M d, Y H:i' }}",
-                    has_reply: {% if feedback.feedback_reply %}true{% else %}false{% endif %}
-                },
+{% block custom_js %}
+<script>
+$(document).ready(function(){
+    // Store conversation data
+    const conversationData = {
+        {% for student, messages in student_conversations.items %}
+        {{ student.id }}: {
+            student_id: {{ student.id }},
+            student_name: "{{ student.first_name }} {{ student.last_name }}",
+            student_email: "{{ student.email }}",
+            messages: [
+                {% for message in messages %}
+                {
+                    id: {{ message.id }},
+                    message: "{{ message.feedback|escapejs }}",
+                    reply: "{{ message.feedback_reply|escapejs }}",
+                    created_at: "{{ message.created_at|date:'M d, Y H:i' }}",
+                    has_reply: {% if message.feedback_reply %}true{% else %}false{% endif %}
+                }{% if not forloop.last %},{% endif %}
                 {% endfor %}
-            };
+            ]
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
 
-            // Handle conversation selection
-            $('.conversation-card').click(function(){
-                const feedbackId = $(this).data('feedback-id');
-                const feedback = feedbackData[feedbackId];
-                
-                if (!feedback) return;
+    console.log('Student conversation data loaded:', conversationData);
 
-                // Update active conversation
-                $('.conversation-card').removeClass('active');
-                $(this).addClass('active');
+    // Handle conversation selection
+    $('.conversation-card').click(function(){
+        const studentId = $(this).data('student-id');
+        const conversation = conversationData[studentId];
+        
+        if (!conversation) return;
 
-                // Show chat area
-                $('#no-message-selected').hide();
-                $('#chat-header').show();
-                $('#reply-area').show();
+        // Update active conversation
+        $('.conversation-card').removeClass('active');
+        $(this).addClass('active');
 
-                // Update chat header
-                $('#chat-user-name').text(feedback.student_name);
-                $('#chat-user-info').text('Student ID: ' + feedback.student_id + ' | Session: ' + feedback.session);
+        // Show chat area
+        $('#no-message-selected').hide();
+        $('#chat-header').show();
+        $('#reply-area').show();
 
-                // Display messages
-                displayMessages(feedback);
+        // Update chat header
+        $('#chat-student-name').text(conversation.student_name);
+        $('#chat-student-info').text('Student ID: ' + conversation.student_id + ' | ' + conversation.student_email);
 
-                // Set up reply form
-                $('#reply_feedback_id').val(feedbackId);
-            });
+        // Display messages
+        displayMessages(conversation);
 
-            // Display messages in chat format
-            function displayMessages(feedback) {
-                const messagesContainer = $('#messages-container');
-                messagesContainer.html('');
+        // Set up reply form
+        $('#reply_student_id').val(studentId);
+    });
 
-                // Student message (received)
-                const studentMessage = `
-                    <div class="d-flex justify-content-start mb-3">
-                        <div class="message-bubble message-received">
-                            <div class="message-text">${feedback.message}</div>
-                            <div class="message-time text-right">${feedback.created_at}</div>
+    // Display messages in chronological order
+    function displayMessages(conversation) {
+        const messagesContainer = $('#messages-container');
+        messagesContainer.html('');
+
+        if (!conversation.messages || conversation.messages.length === 0) {
+            messagesContainer.html(`
+                <div class="text-center py-5">
+                    <i class="fas fa-comment-dots fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Messages Yet</h5>
+                    <p class="text-muted">This student hasn't sent any messages yet.</p>
+                </div>
+            `);
+            return;
+        }
+
+        // Sort messages by creation time (oldest first)
+        const sortedMessages = conversation.messages.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        
+        console.log('Displaying messages for', conversation.student_name, ':', sortedMessages);
+
+        sortedMessages.forEach(message => {
+            // Student message (received)
+            const studentMessage = `
+                <div class="d-flex justify-content-start mb-3">
+                    <div class="message-bubble message-received">
+                        <div class="message-text">${message.message}</div>
+                        <div class="message-time text-right">${message.created_at}</div>
+                    </div>
+                </div>
+            `;
+            messagesContainer.append(studentMessage);
+
+            // Admin reply (sent) - if exists
+            if (message.has_reply) {
+                const adminMessage = `
+                    <div class="d-flex justify-content-end mb-3">
+                        <div class="message-bubble message-sent">
+                            <div class="message-text">${message.reply}</div>
+                            <div class="message-time text-left">Replied</div>
                         </div>
                     </div>
                 `;
-                messagesContainer.append(studentMessage);
+                messagesContainer.append(adminMessage);
+            }
+        });
 
-                // Admin reply (sent) - if exists
-                if (feedback.has_reply) {
+        // Scroll to bottom
+        messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+    }
+
+    // Handle reply form submission
+    $('#reply-form').on('submit', function(e){
+        e.preventDefault();
+        
+        const studentId = $('#reply_student_id').val();
+        const reply = $('#reply_message').val().trim();
+        
+        if (!reply) {
+            alert('Please enter a reply message.');
+            return;
+        }
+
+        // Disable form while sending
+        $('#send-reply-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+        $.ajax({
+            url: '{% url "student_feedback_message_reply" %}',
+            type: 'POST',
+            data: {
+                id: studentId,
+                reply: reply,
+                csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(response) {
+                if (response === "True") {
+                    // Add the reply to the chat immediately
                     const adminMessage = `
                         <div class="d-flex justify-content-end mb-3">
                             <div class="message-bubble message-sent">
-                                <div class="message-text">${feedback.reply}</div>
-                                <div class="message-time text-left">Replied</div>
+                                <div class="message-text">${reply}</div>
+                                <div class="message-time text-left">Just now</div>
                             </div>
                         </div>
                     `;
-                    messagesContainer.append(adminMessage);
+                    $('#messages-container').append(adminMessage);
+                    
+                    // Clear form
+                    $('#reply_message').val('');
+                    
+                    // Scroll to bottom
+                    $('#messages-container').scrollTop($('#messages-container')[0].scrollHeight);
+                    
+                    // Show success message
+                    showNotification('Reply sent successfully!', 'success');
+                } else {
+                    showNotification('Failed to send reply. Please try again.', 'error');
                 }
-
-                // Scroll to bottom
-                messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+            },
+            error: function() {
+                showNotification('Error sending reply. Please try again.', 'error');
+            },
+            complete: function() {
+                $('#send-reply-btn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
             }
-
-            // Handle reply form submission
-            $('#reply-form').on('submit', function(e){
-                e.preventDefault();
-                
-                const feedbackId = $('#reply_feedback_id').val();
-                const reply = $('#reply_message').val().trim();
-                
-                if (!reply) {
-                    alert('Please enter a reply message.');
-                    return;
-                }
-
-                // Disable form while sending
-                $('#send-reply-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-
-                $.ajax({
-                    url: '{% url "student_feedback_message_reply" %}',
-                    type: 'POST',
-                    data: {
-                        id: feedbackId,
-                        reply: reply,
-                        csrfmiddlewaretoken: $('[name=csrfmiddlewaretoken]').val()
-                    },
-                    success: function(response) {
-                        if (response === "True") {
-                            // Add the reply to the chat
-                            const adminMessage = `
-                                <div class="d-flex justify-content-end mb-3">
-                                    <div class="message-bubble message-sent">
-                                        <div class="message-text">${reply}</div>
-                                        <div class="message-time text-left">Just now</div>
-                                    </div>
-                                </div>
-                            `;
-                            $('#messages-container').append(adminMessage);
-                            
-                            // Clear form
-                            $('#reply_message').val('');
-                            
-                            // Update conversation status
-                            const activeCard = $('.conversation-card.active');
-                            activeCard.find('.text-muted.small').html('<i class="fas fa-reply text-success mr-1"></i>Replied');
-                            
-                            // Scroll to bottom
-                            $('#messages-container').scrollTop($('#messages-container')[0].scrollHeight);
-                            
-                            // Show success message
-                            showNotification('Reply sent successfully!', 'success');
-                        } else {
-                            showNotification('Failed to send reply. Please try again.', 'error');
-                        }
-                    },
-                    error: function() {
-                        showNotification('Error sending reply. Please try again.', 'error');
-                    },
-                    complete: function() {
-                        $('#send-reply-btn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
-                    }
-                });
-            });
-
-            // Notification function
-            function showNotification(message, type) {
-                const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-                const notification = `
-                    <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
-                         style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
-                        ${message}
-                        <button type="button" class="close" data-dismiss="alert">
-                            <span>&times;</span>
-                        </button>
-                    </div>
-                `;
-                $('body').append(notification);
-                
-                // Auto remove after 3 seconds
-                setTimeout(function() {
-                    $('.alert').fadeOut();
-                }, 3000);
-            }
-
-            // Auto-resize textarea
-            $('#reply_message').on('input', function() {
-                this.style.height = 'auto';
-                this.style.height = (this.scrollHeight) + 'px';
-            });
         });
-    </script>
-  {% endblock custom_js %}
+    });
+
+    // Notification function
+    function showNotification(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+        const notification = `
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+                 style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                ${message}
+                <button type="button" class="close" data-dismiss="alert">
+                    <span>&times;</span>
+                </button>
+            </div>
+        `;
+        $('body').append(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut();
+        }, 3000);
+    }
+
+    // Auto-resize textarea
+    $('#reply_message').on('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // Search functionality
+    $('#search-student').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $('.conversation-item').each(function() {
+            const text = $(this).text().toLowerCase();
+            if (text.includes(searchTerm)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
+});
+</script>
+{% endblock custom_js %}
