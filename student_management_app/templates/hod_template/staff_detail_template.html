@@ -50,6 +50,9 @@
                             </div>
                             <div class="col-md-3 text-center">
                                 <div class="btn-group-vertical">
+                                    <button class="btn btn-light btn-sm mb-2" onclick="openStaffMessageModal({{ staff.admin.id }}, '{{ staff.admin.first_name }} {{ staff.admin.last_name }}')">
+                                        <i class="fas fa-comments mr-1"></i>Send Message
+                                    </button>
                                     <a href="{% url 'edit_staff' staff.admin.id %}" class="btn btn-light btn-sm mb-2">
                                         <i class="fas fa-edit mr-1"></i>Edit Profile
                                     </a>
@@ -265,20 +268,27 @@
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-3 mb-3">
-                                <a href="{% url 'edit_staff' staff.admin.id %}" class="btn btn-primary btn-block">
+                                <button class="btn btn-primary btn-block" onclick="openStaffMessageModal({{ staff.admin.id }}, '{{ staff.admin.first_name }} {{ staff.admin.last_name }}')">
+                                    <i class="fas fa-comments mr-2"></i>Send Message
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'edit_staff' staff.admin.id %}" class="btn btn-success btn-block">
                                     <i class="fas fa-edit mr-2"></i>Edit Profile
                                 </a>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <a href="{% url 'manage_subject' %}" class="btn btn-success btn-block">
+                                <a href="{% url 'manage_subject' %}" class="btn btn-info btn-block">
                                     <i class="fas fa-book mr-2"></i>Manage Subjects
                                 </a>
                             </div>
                             <div class="col-md-3 mb-3">
-                                <a href="{% url 'staff_leave_view' %}" class="btn btn-info btn-block">
+                                <a href="{% url 'staff_leave_view' %}" class="btn btn-warning btn-block">
                                     <i class="fas fa-calendar mr-2"></i>View Leaves
                                 </a>
                             </div>
+                        </div>
+                        <div class="row">
                             <div class="col-md-3 mb-3">
                                 <a href="{% url 'manage_staff' %}" class="btn btn-secondary btn-block">
                                     <i class="fas fa-users mr-2"></i>All Staff
@@ -292,6 +302,56 @@
 
     </div>
 </section>
+
+<!-- Staff Message Modal -->
+<div class="modal fade" id="staffMessageModal" tabindex="-1" role="dialog" aria-labelledby="staffMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="staffMessageModalLabel">
+                    <i class="fas fa-comments mr-2"></i>Send Message to <span id="modalStaffName"></span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <!-- Messages Area -->
+                        <div class="messages-container mb-3" id="modalStaffMessagesContainer" style="height: 300px; overflow-y: auto; background-color: #f8f9fa; padding: 15px; border-radius: 8px;">
+                            <div class="text-center py-5" id="modalStaffNoMessages">
+                                <i class="fas fa-comment-dots fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Messages Yet</h5>
+                                <p class="text-muted">Start the conversation by typing a message below.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Message Input -->
+                        <form id="modalStaffMessageForm">
+                            {% csrf_token %}
+                            <input type="hidden" id="modalStaffId" name="staff_id">
+                            <div class="input-group">
+                                <textarea name="message_content" class="form-control" rows="3" placeholder="Type your message here..." required></textarea>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i> Send
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <a href="{% url 'staff_feedback_message' %}" class="btn btn-info">
+                    <i class="fas fa-external-link-alt mr-1"></i>View All Messages
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <style>
 .staff-profile-avatar {
@@ -336,7 +396,142 @@
 
 .bg-gradient-warning {
     background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
-}
+    }
+    
+    .message-bubble {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+        margin-bottom: 8px;
+    }
+
+    .message-sent {
+        background-color: #007bff;
+        color: white;
+        border-bottom-right-radius: 4px;
+        margin-left: auto;
+    }
+
+    .message-received {
+        background-color: #e9ecef;
+        color: #333;
+        border-bottom-left-radius: 4px;
+        margin-right: auto;
+    }
+
+    .message-text {
+        margin-bottom: 4px;
+        line-height: 1.4;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        opacity: 0.7;
+    }
 </style>
+
+<script>
+function openStaffMessageModal(staffId, staffName) {
+    $('#modalStaffId').val(staffId);
+    $('#modalStaffName').text(staffName);
+    $('#staffMessageModal').modal('show');
+    
+    // Load existing messages for this staff
+    loadStaffMessages(staffId);
+}
+
+function loadStaffMessages(staffId) {
+    $.ajax({
+        url: '{% url "staff_feedback_message_reply" %}',
+        type: 'GET',
+        data: {
+            'staff_id': staffId,
+            'action': 'load_messages'
+        },
+        success: function(response) {
+            // This would need to be implemented in the backend
+            // For now, we'll just show the empty state
+            $('#modalStaffNoMessages').show();
+        },
+        error: function() {
+            $('#modalStaffNoMessages').show();
+        }
+    });
+}
+
+$(document).ready(function(){
+    // Handle staff message form submission
+    $('#modalStaffMessageForm').submit(function(e){
+        e.preventDefault();
+        
+        const staffId = $('#modalStaffId').val();
+        const messageContent = $('textarea[name="message_content"]').val().trim();
+        
+        if (!messageContent) {
+            alert('Please enter a message.');
+            return;
+        }
+
+        // Disable form while sending
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+
+        $.ajax({
+            url: '{% url "staff_feedback_message_reply" %}',
+            type: 'POST',
+            data: {
+                'id': staffId,
+                'reply': messageContent,
+                'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(response){
+                if (response === "True") {
+                    // Clear the textarea
+                    $('textarea[name="message_content"]').val('');
+                    
+                    // Hide no messages state
+                    $('#modalStaffNoMessages').hide();
+                    
+                    // Add the new message to the display
+                    const messageHtml = `
+                        <div class="d-flex justify-content-end mb-3">
+                            <div class="message-bubble message-sent">
+                                <div class="message-text">${messageContent}</div>
+                                <div class="message-time text-left">Just now</div>
+                            </div>
+                        </div>
+                    `;
+                    $('#modalStaffMessagesContainer').append(messageHtml);
+                    
+                    // Scroll to bottom
+                    const container = document.getElementById('modalStaffMessagesContainer');
+                    container.scrollTop = container.scrollHeight;
+                    
+                    // Show success message
+                    toastr.success('Message sent successfully!');
+                } else {
+                    toastr.error('Failed to send message. Please try again.');
+                }
+            },
+            error: function(){
+                toastr.error('An error occurred. Please try again.');
+            },
+            complete: function(){
+                // Re-enable form
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+    
+    // Auto-resize textarea
+    $('textarea[name="message_content"]').on('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+});
+</script>
 
 {% endblock main_content %} 

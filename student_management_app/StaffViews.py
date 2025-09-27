@@ -8,7 +8,7 @@ from django.core import serializers
 import json
 
 
-from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, Attendance, AttendanceReport, LeaveReportStaff, FeedBackStaffs, StudentResult
+from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, Attendance, AttendanceReport, LeaveReportStaff, FeedBackStaffs, StudentResult, Message
 
 
 def staff_home(request):
@@ -122,9 +122,11 @@ def staff_apply_leave_save(request):
 
 def staff_feedback(request):
     staff_obj = Staffs.objects.get(admin=request.user.id)
-    feedback_data = FeedBackStaffs.objects.filter(staff_id=staff_obj).order_by('-created_at')
+    # Get all messages for this staff member in chronological order
+    messages = Message.objects.filter(staff=staff_obj).order_by('created_at')
     context = {
-        "feedback_data":feedback_data
+        "messages": messages,
+        "staff_obj": staff_obj
     }
     return render(request, "staff_template/staff_feedback_template.html", context)
 
@@ -134,16 +136,21 @@ def staff_feedback_save(request):
         messages.error(request, "Invalid Method.")
         return redirect('staff_feedback')
     else:
-        feedback = request.POST.get('feedback_message')
+        message_content = request.POST.get('feedback_message')
         staff_obj = Staffs.objects.get(admin=request.user.id)
 
         try:
-            add_feedback = FeedBackStaffs(staff_id=staff_obj, feedback=feedback, feedback_reply="")
-            add_feedback.save()
-            messages.success(request, "Feedback Sent.")
+            # Create a new message from staff to admin
+            new_message = Message(
+                staff=staff_obj,
+                message_type='staff_to_admin',
+                content=message_content
+            )
+            new_message.save()
+            messages.success(request, "Message Sent.")
             return redirect('staff_feedback')
         except:
-            messages.error(request, "Failed to Send Feedback.")
+            messages.error(request, "Failed to Send Message.")
             return redirect('staff_feedback')
 
 

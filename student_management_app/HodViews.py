@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 import json
 
-from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport
+from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, FeedBackStudent, FeedBackStaffs, LeaveReportStudent, LeaveReportStaff, Attendance, AttendanceReport, Message
 from .forms import AddStudentForm, EditStudentForm
 
 
@@ -806,20 +806,19 @@ def check_username_exist(request):
 
 
 def student_feedback_message(request):
-    # Get all students who have sent feedback
-    students_with_feedback = CustomUser.objects.filter(
+    # Get all students who have sent messages
+    students_with_messages = CustomUser.objects.filter(
         user_type=3,  # Student users
-        students__feedbackstudent__isnull=False
+        students__messages__isnull=False
     ).distinct().order_by('first_name', 'last_name')
     
-    # Group feedback by student
+    # Group messages by student
     student_conversations = {}
-    for student in students_with_feedback:
-        feedbacks = FeedBackStudent.objects.filter(
-            student_id__admin=student
-        ).order_by('created_at')
-        if feedbacks.exists():
-            student_conversations[student] = list(feedbacks)
+    for student in students_with_messages:
+        student_obj = Students.objects.get(admin=student)
+        messages = Message.objects.filter(student=student_obj).order_by('created_at')
+        if messages.exists():
+            student_conversations[student] = list(messages)
     
     context = {
         "student_conversations": student_conversations
@@ -830,17 +829,20 @@ def student_feedback_message(request):
 @csrf_exempt
 def student_feedback_message_reply(request):
     student_id = request.POST.get('id')
-    feedback_reply = request.POST.get('reply')
+    message_content = request.POST.get('reply')
 
     try:
-        # Get the latest feedback from this student
+        # Get the student object
         student = CustomUser.objects.get(id=student_id, user_type=3)
         student_obj = Students.objects.get(admin=student)
-        latest_feedback = FeedBackStudent.objects.filter(student_id=student_obj).latest('created_at')
         
-        # Update the latest feedback with the reply
-        latest_feedback.feedback_reply = feedback_reply
-        latest_feedback.save()
+        # Create a new message from admin to student
+        new_message = Message(
+            student=student_obj,
+            message_type='admin_to_student',
+            content=message_content
+        )
+        new_message.save()
         return HttpResponse("True")
 
     except:
@@ -848,41 +850,83 @@ def student_feedback_message_reply(request):
 
 
 def staff_feedback_message(request):
-    # Get all staff who have sent feedback
-    staff_with_feedback = CustomUser.objects.filter(
+    # Get all staff who have sent messages
+    staff_with_messages = CustomUser.objects.filter(
         user_type=2,  # Staff users
-        staffs__feedbackstaffs__isnull=False
+        staffs__messages__isnull=False
     ).distinct().order_by('first_name', 'last_name')
     
-    # Group feedback by staff member
+    # Get all students who have sent messages
+    students_with_messages = CustomUser.objects.filter(
+        user_type=3,  # Student users
+        students__messages__isnull=False
+    ).distinct().order_by('first_name', 'last_name')
+    
+    # Group messages by staff member
     staff_conversations = {}
-    for staff in staff_with_feedback:
-        feedbacks = FeedBackStaffs.objects.filter(
-            staff_id__admin=staff
-        ).order_by('created_at')
-        if feedbacks.exists():
-            staff_conversations[staff] = list(feedbacks)
+    for staff in staff_with_messages:
+        staff_obj = Staffs.objects.get(admin=staff)
+        messages = Message.objects.filter(staff=staff_obj).order_by('created_at')
+        if messages.exists():
+            staff_conversations[staff] = {
+                'messages': list(messages),
+                'type': 'staff'
+            }
+    
+    # Group messages by student
+    student_conversations = {}
+    for student in students_with_messages:
+        student_obj = Students.objects.get(admin=student)
+        messages = Message.objects.filter(student=student_obj).order_by('created_at')
+        if messages.exists():
+            student_conversations[student] = {
+                'messages': list(messages),
+                'type': 'student'
+            }
+    
+    # Combine all conversations
+    all_conversations = {**staff_conversations, **student_conversations}
     
     context = {
-        "staff_conversations": staff_conversations
+        "all_conversations": all_conversations,
+        "staff_conversations": staff_conversations,
+        "student_conversations": student_conversations
     }
     return render(request, 'hod_template/staff_feedback_template.html', context)
 
 
 @csrf_exempt
 def staff_feedback_message_reply(request):
-    staff_id = request.POST.get('id')
-    feedback_reply = request.POST.get('reply')
+    user_id = request.POST.get('id')
+    message_content = request.POST.get('reply')
+    user_type = request.POST.get('user_type', 'staff')  # Default to staff for backward compatibility
 
     try:
-        # Get the latest feedback from this staff member
-        staff = CustomUser.objects.get(id=staff_id, user_type=2)
-        staff_obj = Staffs.objects.get(admin=staff)
-        latest_feedback = FeedBackStaffs.objects.filter(staff_id=staff_obj).latest('created_at')
+        if user_type == 'student':
+            # Handle student reply
+            student = CustomUser.objects.get(id=user_id, user_type=3)
+            student_obj = Students.objects.get(admin=student)
+            
+            # Create a new message from admin to student
+            new_message = Message(
+                student=student_obj,
+                message_type='admin_to_student',
+                content=message_content
+            )
+            new_message.save()
+        else:
+            # Handle staff reply (default)
+            staff = CustomUser.objects.get(id=user_id, user_type=2)
+            staff_obj = Staffs.objects.get(admin=staff)
+            
+            # Create a new message from admin to staff
+            new_message = Message(
+                staff=staff_obj,
+                message_type='admin_to_staff',
+                content=message_content
+            )
+            new_message.save()
         
-        # Update the latest feedback with the reply
-        latest_feedback.feedback_reply = feedback_reply
-        latest_feedback.save()
         return HttpResponse("True")
 
     except:

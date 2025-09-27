@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django import forms
 from django.utils.html import format_html
-from .models import CustomUser, AdminHOD, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, LeaveReportStudent, LeaveReportStaff, FeedBackStudent, FeedBackStaffs, NotificationStudent, NotificationStaffs
+from .models import CustomUser, AdminHOD, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, LeaveReportStudent, LeaveReportStaff, FeedBackStudent, FeedBackStaffs, NotificationStudent, NotificationStaffs, Message
 
 # Custom form for changing user password in admin
 class CustomUserChangeForm(UserChangeForm):
@@ -131,3 +131,17 @@ admin.site.register(FeedBackStudent)
 admin.site.register(FeedBackStaffs)
 admin.site.register(NotificationStudent)
 admin.site.register(NotificationStaffs)
+
+# Message Admin
+class MessageAdmin(admin.ModelAdmin):
+    list_display = ('staff', 'message_type', 'content_preview', 'is_read', 'created_at')
+    list_filter = ('message_type', 'is_read', 'created_at')
+    search_fields = ('staff__admin__first_name', 'staff__admin__last_name', 'content')
+    readonly_fields = ('created_at', 'updated_at')
+    ordering = ('-created_at',)
+    
+    def content_preview(self, obj):
+        return obj.content[:50] + "..." if len(obj.content) > 50 else obj.content
+    content_preview.short_description = "Content Preview"
+
+admin.site.register(Message, MessageAdmin)

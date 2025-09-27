@@ -5,7 +5,7 @@ from django.core.files.storage import FileSystemStorage #To upload Profile Pictu
 from django.urls import reverse
 import datetime # To Parse input DateTime into Python Date Time Object
 
-from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, LeaveReportStudent, FeedBackStudent, StudentResult
+from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, Attendance, AttendanceReport, LeaveReportStudent, FeedBackStudent, StudentResult, Message
 
 
 def student_home(request):
@@ -134,9 +134,11 @@ def student_apply_leave_save(request):
 
 def student_feedback(request):
     student_obj = Students.objects.get(admin=request.user.id)
-    feedback_data = FeedBackStudent.objects.filter(student_id=student_obj).order_by('-created_at')
+    # Get all messages for this student in chronological order
+    messages = Message.objects.filter(student=student_obj).order_by('created_at')
     context = {
-        "feedback_data": feedback_data
+        "messages": messages,
+        "student_obj": student_obj
     }
     return render(request, 'student_template/student_feedback.html', context)
 
@@ -146,16 +148,21 @@ def student_feedback_save(request):
         messages.error(request, "Invalid Method.")
         return redirect('student_feedback')
     else:
-        feedback = request.POST.get('feedback_message')
+        message_content = request.POST.get('feedback_message')
         student_obj = Students.objects.get(admin=request.user.id)
 
         try:
-            add_feedback = FeedBackStudent(student_id=student_obj, feedback=feedback, feedback_reply="")
-            add_feedback.save()
-            messages.success(request, "Feedback Sent.")
+            # Create a new message from student to admin
+            new_message = Message(
+                student=student_obj,
+                message_type='student_to_admin',
+                content=message_content
+            )
+            new_message.save()
+            messages.success(request, "Message Sent.")
             return redirect('student_feedback')
         except:
-            messages.error(request, "Failed to Send Feedback.")
+            messages.error(request, "Failed to Send Message.")
             return redirect('student_feedback')
 
 

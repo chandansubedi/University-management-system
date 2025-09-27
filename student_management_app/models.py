@@ -146,6 +146,41 @@ class FeedBackStaffs(models.Model):
     objects = models.Manager()
 
 
+class Message(models.Model):
+    """New model for proper conversation handling between staff/student and admin"""
+    MESSAGE_TYPES = (
+        ('staff_to_admin', 'Staff to Admin'),
+        ('admin_to_staff', 'Admin to Staff'),
+        ('student_to_admin', 'Student to Admin'),
+        ('admin_to_student', 'Admin to Student'),
+    )
+    
+    id = models.AutoField(primary_key=True)
+    staff = models.ForeignKey(Staffs, on_delete=models.CASCADE, related_name='messages', null=True, blank=True)
+    student = models.ForeignKey(Students, on_delete=models.CASCADE, related_name='messages', null=True, blank=True)
+    message_type = models.CharField(max_length=20, choices=MESSAGE_TYPES)
+    content = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        if self.staff:
+            return f"{self.get_message_type_display()} - {self.staff.admin.first_name} - {self.created_at}"
+        elif self.student:
+            return f"{self.get_message_type_display()} - {self.student.admin.first_name} - {self.created_at}"
+        return f"{self.get_message_type_display()} - {self.created_at}"
+    
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.staff and not self.student:
+            raise ValidationError('Either staff or student must be specified.')
+        if self.staff and self.student:
+            raise ValidationError('Cannot specify both staff and student.')
+
 
 class NotificationStudent(models.Model):
     id = models.AutoField(primary_key=True)
