@@ -6,6 +6,8 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 import json
+import csv
+import datetime
 
 
 from student_management_app.models import CustomUser, Staffs, Courses, Subjects, Students, SessionYearModel, Attendance, AttendanceReport, LeaveReportStaff, FeedBackStaffs, StudentResult, Message
@@ -161,55 +163,124 @@ def get_students(request):
     subject_id = request.POST.get("subject")
     session_year = request.POST.get("session_year")
 
-    # Students enroll to Course, Course has Subjects
-    # Getting all data from subject model based on subject_id
-    subject_model = Subjects.objects.get(id=subject_id)
+    # Validate required fields
+    if not subject_id or not session_year:
+        return JsonResponse(json.dumps([]), content_type="application/json", safe=False)
 
-    session_model = SessionYearModel.objects.get(id=session_year)
+    try:
+        # Students enroll to Course, Course has Subjects
+        # Getting all data from subject model based on subject_id
+        try:
+            subject_model = Subjects.objects.get(id=subject_id)
+        except Subjects.DoesNotExist:
+            return JsonResponse(json.dumps([]), content_type="application/json", safe=False)
 
-    students = Students.objects.filter(course_id=subject_model.course_id, session_year_id=session_model)
+        try:
+            session_model = SessionYearModel.objects.get(id=session_year)
+        except SessionYearModel.DoesNotExist:
+            return JsonResponse(json.dumps([]), content_type="application/json", safe=False)
 
-    # Only Passing Student Id and Student Name Only
-    list_data = []
+        # Filter students by course and session year
+        students = Students.objects.filter(
+            course_id=subject_model.course_id, 
+            session_year_id=session_model
+        ).select_related('admin')
 
-    for student in students:
-        data_small={"id":student.admin.id, "name":student.admin.first_name+" "+student.admin.last_name}
-        list_data.append(data_small)
+        # Only Passing Student Id and Student Name Only
+        list_data = []
 
-    return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
+        for student in students:
+            if student.admin:  # Ensure admin exists
+                data_small = {
+                    "id": student.admin.id, 
+                    "name": f"{student.admin.first_name} {student.admin.last_name}".strip()
+                }
+                list_data.append(data_small)
+
+        return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
+        
+    except Exception as e:
+        print(f"Error in get_students: {str(e)}")
+        return JsonResponse(json.dumps([]), content_type="application/json", safe=False)
 
 
 
 
 @csrf_exempt
 def save_attendance_data(request):
-    # Get Values from Staf Take Attendance form via AJAX (JavaScript)
+    # Get Values from Staff Take Attendance form via AJAX (JavaScript)
     # Use getlist to access HTML Array/List Input Data
     student_ids = request.POST.get("student_ids")
     subject_id = request.POST.get("subject_id")
     attendance_date = request.POST.get("attendance_date")
     session_year_id = request.POST.get("session_year_id")
 
-    subject_model = Subjects.objects.get(id=subject_id)
-    session_year_model = SessionYearModel.objects.get(id=session_year_id)
+    # Validate required fields
+    if not all([student_ids, subject_id, attendance_date, session_year_id]):
+        return HttpResponse("Error: Missing required fields")
 
-    json_student = json.loads(student_ids)
-    # print(dict_student[0]['id'])
-
-    # print(student_ids)
     try:
+        # Get subject and session year models
+        try:
+            subject_model = Subjects.objects.get(id=subject_id)
+        except Subjects.DoesNotExist:
+            return HttpResponse("Error: Subject not found")
+        
+        try:
+            session_year_model = SessionYearModel.objects.get(id=session_year_id)
+        except SessionYearModel.DoesNotExist:
+            return HttpResponse("Error: Session year not found")
+
+        # Parse student data
+        try:
+            json_student = json.loads(student_ids)
+        except json.JSONDecodeError:
+            return HttpResponse("Error: Invalid student data format")
+
+        if not json_student:
+            return HttpResponse("Error: No students selected")
+
+        # Check if attendance already exists for this date/subject/session
+        existing_attendance = Attendance.objects.filter(
+            subject_id=subject_model,
+            attendance_date=attendance_date,
+            session_year_id=session_year_model
+        ).first()
+
+        if existing_attendance:
+            return HttpResponse("Error: Attendance already exists for this date")
+
         # First Attendance Data is Saved on Attendance Model
-        attendance = Attendance(subject_id=subject_model, attendance_date=attendance_date, session_year_id=session_year_model)
+        attendance = Attendance(
+            subject_id=subject_model, 
+            attendance_date=attendance_date, 
+            session_year_id=session_year_model
+        )
         attendance.save()
 
+        # Save individual student attendance reports
         for stud in json_student:
-            # Attendance of Individual Student saved on AttendanceReport Model
-            student = Students.objects.get(admin=stud['id'])
-            attendance_report = AttendanceReport(student_id=student, attendance_id=attendance, status=stud['status'])
-            attendance_report.save()
+            try:
+                student = Students.objects.get(admin=stud['id'])
+                attendance_report = AttendanceReport(
+                    student_id=student, 
+                    attendance_id=attendance, 
+                    status=bool(stud['status'])
+                )
+                attendance_report.save()
+            except Students.DoesNotExist:
+                # Skip this student if not found, but continue with others
+                continue
+            except Exception as e:
+                # Log the error but continue with other students
+                print(f"Error saving attendance for student {stud['id']}: {str(e)}")
+                continue
+
         return HttpResponse("OK")
-    except:
-        return HttpResponse("Error")
+        
+    except Exception as e:
+        print(f"Error in save_attendance_data: {str(e)}")
+        return HttpResponse(f"Error: {str(e)}")
 
 
 
@@ -254,15 +325,27 @@ def get_attendance_dates(request):
 def get_attendance_student(request):
     # Getting Values from Ajax POST 'Fetch Student'
     attendance_date = request.POST.get('attendance_date')
-    attendance = Attendance.objects.get(id=attendance_date)
+    
+    if not attendance_date:
+        return JsonResponse(json.dumps([]), content_type="application/json", safe=False)
 
-    attendance_data = AttendanceReport.objects.filter(attendance_id=attendance)
+    try:
+        attendance = Attendance.objects.get(id=attendance_date)
+    except Attendance.DoesNotExist:
+        return JsonResponse(json.dumps([]), content_type="application/json", safe=False)
+
+    attendance_data = AttendanceReport.objects.filter(attendance_id=attendance).select_related('student_id__admin')
     # Only Passing Student Id and Student Name Only
     list_data = []
 
     for student in attendance_data:
-        data_small={"id":student.student_id.admin.id, "name":student.student_id.admin.first_name+" "+student.student_id.admin.last_name, "status":student.status}
-        list_data.append(data_small)
+        if student.student_id and student.student_id.admin:
+            data_small = {
+                "id": student.student_id.admin.id, 
+                "name": f"{student.student_id.admin.first_name} {student.student_id.admin.last_name}".strip(), 
+                "status": student.status
+            }
+            list_data.append(data_small)
 
     return JsonResponse(json.dumps(list_data), content_type="application/json", safe=False)
 
@@ -270,25 +353,227 @@ def get_attendance_student(request):
 @csrf_exempt
 def update_attendance_data(request):
     student_ids = request.POST.get("student_ids")
-
     attendance_date = request.POST.get("attendance_date")
-    attendance = Attendance.objects.get(id=attendance_date)
 
-    json_student = json.loads(student_ids)
+    # Validate required fields
+    if not student_ids or not attendance_date:
+        return HttpResponse("Error: Missing required fields")
 
     try:
-        
+        # Get attendance record
+        try:
+            attendance = Attendance.objects.get(id=attendance_date)
+        except Attendance.DoesNotExist:
+            return HttpResponse("Error: Attendance record not found")
+
+        # Parse student data
+        try:
+            json_student = json.loads(student_ids)
+        except json.JSONDecodeError:
+            return HttpResponse("Error: Invalid student data format")
+
+        if not json_student:
+            return HttpResponse("Error: No students selected")
+
+        # Update individual student attendance reports
         for stud in json_student:
-            # Attendance of Individual Student saved on AttendanceReport Model
-            student = Students.objects.get(admin=stud['id'])
+            try:
+                student = Students.objects.get(admin=stud['id'])
+                attendance_report = AttendanceReport.objects.get(
+                    student_id=student, 
+                    attendance_id=attendance
+                )
+                attendance_report.status = bool(stud['status'])
+                attendance_report.save()
+            except Students.DoesNotExist:
+                # Skip this student if not found
+                continue
+            except AttendanceReport.DoesNotExist:
+                # Skip if attendance report doesn't exist
+                continue
+            except Exception as e:
+                # Log the error but continue with other students
+                print(f"Error updating attendance for student {stud['id']}: {str(e)}")
+                continue
 
-            attendance_report = AttendanceReport.objects.get(student_id=student, attendance_id=attendance)
-            attendance_report.status=stud['status']
-
-            attendance_report.save()
         return HttpResponse("OK")
-    except:
-        return HttpResponse("Error")
+        
+    except Exception as e:
+        print(f"Error in update_attendance_data: {str(e)}")
+        return HttpResponse(f"Error: {str(e)}")
+
+
+def staff_view_attendance(request):
+    subjects = Subjects.objects.filter(staff_id=request.user.id)
+    session_years = SessionYearModel.objects.all()
+    context = {
+        "subjects": subjects,
+        "session_years": session_years
+    }
+    return render(request, "staff_template/staff_view_attendance_template.html", context)
+
+
+def staff_view_attendance_post(request):
+    if request.method != "POST":
+        messages.error(request, "Invalid Method")
+        return redirect('staff_view_attendance')
+    else:
+        # Getting all the Input Data
+        subject_id = request.POST.get('subject')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+
+        # Parsing the date data into Python object
+        import datetime
+        start_date_parse = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+        end_date_parse = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+
+        # Getting all the Subject Data based on Selected Subject
+        try:
+            subject_obj = Subjects.objects.get(id=subject_id)
+        except Subjects.DoesNotExist:
+            messages.error(request, "Subject not found")
+            return redirect('staff_view_attendance')
+
+        # Now Accessing Attendance Data based on the Range of Date Selected and Subject Selected
+        attendance = Attendance.objects.filter(
+            attendance_date__range=(start_date_parse, end_date_parse), 
+            subject_id=subject_obj
+        ).order_by('attendance_date')
+
+        # Getting Attendance Report based on the attendance details obtained above
+        attendance_reports = AttendanceReport.objects.filter(
+            attendance_id__in=attendance
+        ).select_related('student_id__admin', 'attendance_id').order_by('attendance_id__attendance_date', 'student_id__admin__first_name')
+
+        # Calculate summary statistics
+        total_records = attendance_reports.count()
+        present_count = attendance_reports.filter(status=True).count()
+        absent_count = attendance_reports.filter(status=False).count()
+
+        context = {
+            "subject_obj": subject_obj,
+            "attendance_reports": attendance_reports,
+            "start_date": start_date,
+            "end_date": end_date,
+            "total_records": total_records,
+            "present_count": present_count,
+            "absent_count": absent_count
+        }
+
+        return render(request, 'staff_template/staff_attendance_data_template.html', context)
+
+
+def staff_download_attendance_csv(request):
+    """
+    Download attendance data as CSV file
+    """
+    if request.method != "POST":
+        messages.error(request, "Invalid Method")
+        return redirect('staff_view_attendance')
+    
+    try:
+        # Get form data
+        subject_id = request.POST.get('subject')
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        
+        # Validate required fields
+        if not all([subject_id, start_date, end_date]):
+            messages.error(request, "Missing required fields for CSV download")
+            return redirect('staff_view_attendance')
+        
+        # Parse dates
+        try:
+            start_date_parse = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date_parse = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            messages.error(request, "Invalid date format")
+            return redirect('staff_view_attendance')
+        
+        # Get subject
+        try:
+            subject_obj = Subjects.objects.get(id=subject_id)
+        except Subjects.DoesNotExist:
+            messages.error(request, "Subject not found")
+            return redirect('staff_view_attendance')
+        
+        # Verify staff has access to this subject
+        if subject_obj.staff_id.id != request.user.id:
+            messages.error(request, "You don't have permission to access this subject's attendance")
+            return redirect('staff_view_attendance')
+        
+        # Get attendance data
+        attendance = Attendance.objects.filter(
+            attendance_date__range=(start_date_parse, end_date_parse), 
+            subject_id=subject_obj
+        ).order_by('attendance_date')
+        
+        if not attendance.exists():
+            messages.warning(request, "No attendance data found for the selected date range")
+            return redirect('staff_view_attendance')
+        
+        # Get attendance reports
+        attendance_reports = AttendanceReport.objects.filter(
+            attendance_id__in=attendance
+        ).select_related('student_id__admin', 'attendance_id').order_by(
+            'attendance_id__attendance_date', 
+            'student_id__admin__first_name'
+        )
+        
+        if not attendance_reports.exists():
+            messages.warning(request, "No attendance reports found for the selected date range")
+            return redirect('staff_view_attendance')
+        
+        # Create CSV response
+        response = HttpResponse(content_type='text/csv')
+        filename = f"attendance_{subject_obj.subject_name}_{start_date}_to_{end_date}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Create CSV writer
+        writer = csv.writer(response)
+        
+        # Write header
+        writer.writerow([
+            'Student Name',
+            'Student ID',
+            'Date',
+            'Status',
+            'Subject',
+            'Course'
+        ])
+        
+        # Write data rows
+        for report in attendance_reports:
+            if report.student_id and report.student_id.admin:
+                status = 'Present' if report.status else 'Absent'
+                writer.writerow([
+                    f"{report.student_id.admin.first_name} {report.student_id.admin.last_name}",
+                    report.student_id.admin.username,
+                    report.attendance_id.attendance_date.strftime('%Y-%m-%d'),
+                    status,
+                    subject_obj.subject_name,
+                    subject_obj.course_id.course_name
+                ])
+        
+        # Add summary at the end
+        total_records = attendance_reports.count()
+        present_count = attendance_reports.filter(status=True).count()
+        absent_count = attendance_reports.filter(status=False).count()
+        
+        writer.writerow([])  # Empty row
+        writer.writerow(['SUMMARY'])
+        writer.writerow(['Total Records', total_records])
+        writer.writerow(['Present', present_count])
+        writer.writerow(['Absent', absent_count])
+        writer.writerow(['Attendance Rate', f"{(present_count/total_records*100):.1f}%" if total_records > 0 else "0%"])
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error in staff_download_attendance_csv: {str(e)}")
+        messages.error(request, f"Error generating CSV file: {str(e)}")
+        return redirect('staff_view_attendance')
 
 
 def staff_profile(request):

@@ -1,0 +1,255 @@
+{% extends 'staff_template/base_template.html' %}
+
+{% block custom_css %}
+<style>
+.attendance_div_red{
+    padding: 10px;
+    padding-top: 20px;
+    background: #f44336;
+    border: 10px solid white;
+    text-align: center;
+    color: #fff;
+    border-radius: 30px;
+    box-shadow: 1px 1px 1px grey;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.attendance_div_green{
+    padding: 10px;
+    padding-top: 20px;
+    background: #4CAF50;
+    border: 10px solid white;
+    text-align: center;
+    color: #fff;
+    border-radius: 30px;
+    box-shadow: 1px 1px 1px grey;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.attendance-table {
+    margin-top: 20px;
+}
+
+.attendance-table th {
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+}
+
+.attendance-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.status-present {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-absent {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+    font-size: 18px;
+}
+</style>
+{% endblock custom_css %}
+
+{% block page_title %}
+    View Attendance Data
+{% endblock page_title %}
+
+{% block main_content %}
+
+{% load static %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Attendance Data for {{ subject_obj.subject_name }} ({{ start_date }} to {{ end_date }})</h3>
+                        {% if attendance_reports %}
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-success btn-sm" id="downloadCSV">
+                                <i class="fas fa-download"></i> Download CSV
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <!-- /.card-header -->
+     
+                    <div class="card-body">
+                        {% if attendance_reports %}
+                            <div class="table-responsive attendance-table">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Student Name</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for attendance_report in attendance_reports %}
+                                            <tr>
+                                                <td>{{ attendance_report.student_id.admin.first_name }} {{ attendance_report.student_id.admin.last_name }}</td>
+                                                <td>{{ attendance_report.attendance_id.attendance_date }}</td>
+                                                <td>
+                                                    {% if attendance_report.status %}
+                                                        <span class="status-present">✓ Present</span>
+                                                    {% else %}
+                                                        <span class="status-absent">✗ Absent</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Summary Statistics -->
+                            <div class="row mt-4">
+                                <div class="col-md-4">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-info"><i class="fas fa-users"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Total Records</span>
+                                            <span class="info-box-number">{{ total_records }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Present</span>
+                                            <span class="info-box-number">{{ present_count }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="info-box">
+                                        <span class="info-box-icon bg-danger"><i class="fas fa-times"></i></span>
+                                        <div class="info-box-content">
+                                            <span class="info-box-text">Absent</span>
+                                            <span class="info-box-number">{{ absent_count }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="no-data">
+                                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                <h4>No Attendance Data Found</h4>
+                                <p>No attendance records found for the selected subject and date range.</p>
+                                <p class="text-muted">Make sure you have taken attendance for this subject within the selected date range.</p>
+                                <a href="{% url 'staff_view_attendance' %}" class="btn btn-primary">Try Different Dates</a>
+                                <a href="{% url 'staff_take_attendance' %}" class="btn btn-success ml-2">Take Attendance</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock main_content %}
+
+{% block custom_js %}
+<script>
+    $(document).ready(function(){
+        // Add some interactivity if needed
+        if ($('.attendance-table').length > 0) {
+            $('.attendance-table').DataTable({
+                "paging": true,
+                "lengthChange": false,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "autoWidth": false,
+                "responsive": true,
+            });
+        }
+        
+        // Debug: Check if button exists
+        console.log('CSV button exists:', $('#downloadCSV').length > 0);
+        
+        // Handle CSV download - only if button exists
+        $(document).on('click', '#downloadCSV', function(e){
+            e.preventDefault();
+            console.log('CSV Download button clicked');
+            alert('CSV Download button clicked!'); // Temporary debug alert
+            
+            // Show loading state
+            $(this).prop('disabled', true);
+            $(this).html('<i class="fas fa-spinner fa-spin"></i> Generating CSV...');
+            
+            // Get form data
+            var subjectId = '{{ subject_obj.id }}';
+            var startDate = '{{ start_date }}';
+            var endDate = '{{ end_date }}';
+            var csrfToken = '{{ csrf_token }}';
+            
+            console.log('Form data:', {
+                subject: subjectId,
+                start_date: startDate,
+                end_date: endDate,
+                csrf_token: csrfToken
+            });
+            
+            // Create a temporary form and submit it
+            var form = $('<form>', {
+                'method': 'POST',
+                'action': '{% url "staff_download_attendance_csv" %}',
+                'style': 'display: none;'
+            });
+            
+            // Add form data as hidden inputs
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'subject',
+                'value': subjectId
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'start_date',
+                'value': startDate
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'end_date',
+                'value': endDate
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'csrfmiddlewaretoken',
+                'value': csrfToken
+            }));
+            
+            // Append to body and submit
+            $('body').append(form);
+            console.log('Submitting form to:', '{% url "staff_download_attendance_csv" %}');
+            form.submit();
+            
+            // Remove form and reset button after a delay
+            setTimeout(function(){
+                form.remove();
+                $('#downloadCSV').prop('disabled', false);
+                $('#downloadCSV').html('<i class="fas fa-download"></i> Download CSV');
+            }, 3000);
+        });
+    });
+</script>
+{% endblock custom_js %}

@@ -1,0 +1,76 @@
+{% extends 'staff_template/base_template.html' %}
+
+{% block page_title %}
+    View Attendance
+{% endblock page_title %}
+
+{% block main_content %}
+{% load static %}
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <!-- general form elements -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">View Attendance</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <!-- form start -->
+                    <form method="POST" action="{% url 'staff_view_attendance_post' %}">
+                        {% csrf_token %}
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label>Subject </label>
+                                <select class="form-control" name="subject" id="subject">
+                                    <option value="">Select Subject</option>
+                                    {% for subject in subjects %}
+                                        <option value="{{ subject.id }}">{{ subject.subject_name }} - {{ subject.course_id.course_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label>Start Date</label>
+                                        <input type="date" name="start_date" class="form-control" placeholder="Start Date">
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label>End Date</label>
+                                        <input type="date" name="end_date" class="form-control" placeholder="End Date">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <!-- /.card-body -->
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary btn-block" id="fetch_student">View Attendance</button>
+                        </div>
+                    </form>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock main_content %}
+
+{% block custom_js %}
+<script>
+    $(document).ready(function(){
+        // Set default dates (last 30 days)
+        var today = new Date();
+        var thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+        
+        $('input[name="start_date"]').val(thirtyDaysAgo.toISOString().split('T')[0]);
+        $('input[name="end_date"]').val(today.toISOString().split('T')[0]);
+    });
+</script>
+{% endblock custom_js %}

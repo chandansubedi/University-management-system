@@ -69,7 +69,7 @@ class Students(models.Model):
     gender = models.CharField(max_length=50)
     profile_pic = models.FileField()
     address = models.TextField()
-    course_id = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, default=1)
+    course_id = models.ForeignKey(Courses, on_delete=models.DO_NOTHING, null=True, blank=True)
     session_year_id = models.ForeignKey(SessionYearModel, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -229,7 +229,27 @@ def create_user_profile(sender, instance, created, **kwargs):
         if instance.user_type == 2:
             Staffs.objects.create(admin=instance)
         if instance.user_type == 3:
-            Students.objects.create(admin=instance, course_id=Courses.objects.get(id=1), session_year_id=SessionYearModel.objects.get(id=1), address="", profile_pic="", gender="")
+            # Get or create default course and session year
+            course_obj = Courses.objects.first()
+            if not course_obj:
+                course_obj = Courses.objects.create(course_name="Default Course")
+            
+            session_year_obj = SessionYearModel.objects.first()
+            if not session_year_obj:
+                from datetime import date
+                session_year_obj = SessionYearModel.objects.create(
+                    session_start_year=date(2024, 1, 1),
+                    session_end_year=date(2024, 12, 31)
+                )
+            
+            Students.objects.create(
+                admin=instance, 
+                course_id=course_obj, 
+                session_year_id=session_year_obj, 
+                address="", 
+                profile_pic="", 
+                gender=""
+            )
     
 
 @receiver(post_save, sender=CustomUser)

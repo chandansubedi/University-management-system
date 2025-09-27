@@ -109,6 +109,21 @@ def add_staff_save(request):
         address = request.POST.get('address')
         course_id = request.POST.get('course')
 
+        # Validate required fields
+        if not all([first_name, last_name, username, email, password, address]):
+            messages.error(request, "All fields are required!")
+            return redirect('add_staff')
+
+        # Check if username already exists
+        if CustomUser.objects.filter(username=username).exists():
+            messages.error(request, f"Username '{username}' is already taken. Please choose a different username.")
+            return redirect('add_staff')
+        
+        # Check if email already exists
+        if CustomUser.objects.filter(email=email).exists():
+            messages.error(request, f"Email '{email}' is already registered. Please use a different email.")
+            return redirect('add_staff')
+
         try:
             user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=2)
             user.staffs.address = address
@@ -116,10 +131,10 @@ def add_staff_save(request):
                 course_obj = Courses.objects.get(id=course_id)
                 user.staffs.course_id = course_obj
             user.save()
-            messages.success(request, "Staff Added Successfully!")
+            messages.success(request, f"Staff '{first_name} {last_name}' added successfully!")
             return redirect('add_staff')
-        except:
-            messages.error(request, "Failed to Add Staff!")
+        except Exception as e:
+            messages.error(request, f"Failed to add staff: {str(e)}")
             return redirect('add_staff')
 
 
@@ -398,65 +413,179 @@ def delete_session(request, session_id):
 
 
 def add_student(request):
-    form = AddStudentForm()
+    # Get all courses and session years
+    courses = Courses.objects.all()
+    session_years = SessionYearModel.objects.all()
+    
     context = {
-        "form": form
+        "courses": courses,
+        "session_years": session_years
     }
-    return render(request, 'hod_template/add_student_template.html', context)
+    return render(request, 'hod_template/add_student_new_template.html', context)
 
 
 
+
+def add_course(request):
+    return render(request, 'hod_template/add_course_template.html')
+
+def add_course_save(request):
+    if request.method != "POST":
+        messages.error(request, "Invalid Method")
+        return redirect('add_course')
+    else:
+        course_name = request.POST.get('course_name', '').strip()
+        
+        if not course_name:
+            messages.error(request, "Course name is required.")
+            return redirect('add_course')
+        
+        try:
+            course = Courses.objects.create(course_name=course_name)
+            messages.success(request, f"Course '{course_name}' added successfully!")
+            return redirect('add_course')
+        except Exception as e:
+            messages.error(request, f"Failed to add course: {str(e)}")
+            return redirect('add_course')
+
+def add_session(request):
+    return render(request, 'hod_template/add_session_template.html')
+
+def add_session_save(request):
+    if request.method != "POST":
+        messages.error(request, "Invalid Method")
+        return redirect('add_session')
+    else:
+        session_start_year = request.POST.get('session_start_year', '').strip()
+        session_end_year = request.POST.get('session_end_year', '').strip()
+        
+        if not session_start_year or not session_end_year:
+            messages.error(request, "Both start and end years are required.")
+            return redirect('add_session')
+        
+        try:
+            session_year = SessionYearModel.objects.create(
+                session_start_year=session_start_year,
+                session_end_year=session_end_year
+            )
+            messages.success(request, f"Session year '{session_start_year} to {session_end_year}' added successfully!")
+            return redirect('add_session')
+        except Exception as e:
+            messages.error(request, f"Failed to add session year: {str(e)}")
+            return redirect('add_session')
 
 def add_student_save(request):
     if request.method != "POST":
         messages.error(request, "Invalid Method")
         return redirect('add_student')
+    
+    # Get data from POST request
+    first_name = request.POST.get('first_name', '').strip()
+    last_name = request.POST.get('last_name', '').strip()
+    username = request.POST.get('username', '').strip()
+    email = request.POST.get('email', '').strip()
+    password = request.POST.get('password', '').strip()
+    address = request.POST.get('address', '').strip()
+    course_id = request.POST.get('course_id', '').strip()
+    session_year_id = request.POST.get('session_year_id', '').strip()
+    gender = request.POST.get('gender', 'Male').strip()
+
+    # Validate required fields
+    if not all([first_name, last_name, username, email, password, address, gender]):
+        messages.error(request, "Please fill in all required fields.")
+        return redirect('add_student')
+
+    # Check if username already exists
+    if CustomUser.objects.filter(username=username).exists():
+        messages.error(request, f"Username '{username}' is already taken. Please choose a different username.")
+        return redirect('add_student')
+    
+    # Check if email already exists
+    if CustomUser.objects.filter(email=email).exists():
+        messages.error(request, f"Email '{email}' is already registered. Please use a different email.")
+        return redirect('add_student')
+
+    # Handle profile picture
+    profile_pic_url = None
+    if 'profile_pic' in request.FILES and request.FILES['profile_pic']:
+        profile_pic = request.FILES['profile_pic']
+        fs = FileSystemStorage()
+        filename = fs.save(profile_pic.name, profile_pic)
+        profile_pic_url = fs.url(filename)
+
+    # BULLETPROOF COURSE HANDLING
+    course_obj = None
+    if course_id and course_id != '':
+        # Try to get existing course
+        try:
+            course_obj = Courses.objects.get(id=course_id)
+        except Courses.DoesNotExist:
+            # Create new course with this ID
+            course_obj = Courses.objects.create(id=course_id, course_name=f"Course {course_id}")
     else:
-        form = AddStudentForm(request.POST, request.FILES)
+        # No course selected, get first available or create default
+        course_obj = Courses.objects.first()
+        if not course_obj:
+            course_obj = Courses.objects.create(course_name="Default Course")
+    
+    # BULLETPROOF SESSION YEAR HANDLING
+    session_year_obj = None
+    if session_year_id and session_year_id != '':
+        # Try to get existing session year
+        try:
+            session_year_obj = SessionYearModel.objects.get(id=session_year_id)
+        except SessionYearModel.DoesNotExist:
+            # Create new session year with this ID
+            from datetime import date
+            session_year_obj = SessionYearModel.objects.create(
+                id=session_year_id,
+                session_start_year=date(2024, 1, 1),
+                session_end_year=date(2024, 12, 31)
+            )
+    else:
+        # No session year selected, get first available or create default
+        session_year_obj = SessionYearModel.objects.first()
+        if not session_year_obj:
+            from datetime import date
+            session_year_obj = SessionYearModel.objects.create(
+                session_start_year=date(2024, 1, 1),
+                session_end_year=date(2024, 12, 31)
+            )
 
-        if form.is_valid():
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
-            address = form.cleaned_data['address']
-            session_year_id = form.cleaned_data['session_year_id']
-            course_id = form.cleaned_data['course_id']
-            gender = form.cleaned_data['gender']
-
-            # Getting Profile Pic first
-            # First Check whether the file is selected or not
-            # Upload only if file is selected
-            if len(request.FILES) != 0:
-                profile_pic = request.FILES['profile_pic']
-                fs = FileSystemStorage()
-                filename = fs.save(profile_pic.name, profile_pic)
-                profile_pic_url = fs.url(filename)
-            else:
-                profile_pic_url = None
-
-
-            try:
-                user = CustomUser.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name, user_type=3)
-                user.students.address = address
-
-                course_obj = Courses.objects.get(id=course_id)
-                user.students.course_id = course_obj
-
-                session_year_obj = SessionYearModel.objects.get(id=session_year_id)
-                user.students.session_year_id = session_year_obj
-
-                user.students.gender = gender
-                user.students.profile_pic = profile_pic_url
-                user.save()
-                messages.success(request, "Student Added Successfully!")
-                return redirect('add_student')
-            except:
-                messages.error(request, "Failed to Add Student!")
-                return redirect('add_student')
-        else:
-            return redirect('add_student')
+    # CREATE USER AND STUDENT RECORD
+    try:
+        # Create the user (signal will automatically create Students record)
+        user = CustomUser.objects.create_user(
+            username=username, 
+            password=password, 
+            email=email, 
+            first_name=first_name, 
+            last_name=last_name, 
+            user_type=3
+        )
+        
+        # Update the student record created by the signal
+        from student_management_app.models import Students
+        student = Students.objects.get(admin=user)
+        student.address = address
+        student.course_id = course_obj
+        student.session_year_id = session_year_obj
+        student.gender = gender
+        student.profile_pic = profile_pic_url
+        student.save()
+        
+        messages.success(request, f"Student '{first_name} {last_name}' added successfully!")
+        return redirect('add_student')
+        
+    except Exception as e:
+        # Clean up if anything fails
+        try:
+            if 'user' in locals():
+                user.delete()
+        except:
+            pass
+        messages.error(request, f"Failed to add student: {str(e)}")
+        return redirect('add_student')
 
 
 def manage_student(request):
@@ -637,7 +766,7 @@ def delete_student(request, student_id):
 
 def add_subject(request):
     courses = Courses.objects.all()
-    staffs = CustomUser.objects.filter(user_type='2')
+    staffs = Staffs.objects.filter(admin__is_active=True)
     context = {
         "courses": courses,
         "staffs": staffs
@@ -697,7 +826,7 @@ def manage_subject(request):
 def edit_subject(request, subject_id):
     subject = Subjects.objects.get(id=subject_id)
     courses = Courses.objects.all()
-    staffs = CustomUser.objects.filter(user_type='2')
+    staffs = Staffs.objects.filter(admin__is_active=True)
     context = {
         "subject": subject,
         "courses": courses,
@@ -742,7 +871,7 @@ def edit_subject_save(request):
 def course_subject_list(request, course_id):
     course = Courses.objects.get(id=course_id)
     subjects = Subjects.objects.filter(course_id=course)
-    staffs = CustomUser.objects.filter(user_type='2')
+    staffs = Staffs.objects.filter(admin__is_active=True)
     
     context = {
         "course": course,

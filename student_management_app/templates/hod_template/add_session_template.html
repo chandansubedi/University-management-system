@@ -5,84 +5,70 @@
 {% endblock page_title %}
 
 {% block main_content %}
-
 {% load static %}
 
 <section class="content">
-        <div class="container-fluid">
-
-            <div class="row justify-content-center">
-                <div class="col-md-8 col-lg-6">
-                    <!-- Enhanced form -->
-                    <div class="enhanced-form">
-                    <div class="form-header">
-                        <h3><i class="fas fa-calendar-plus mr-2"></i>Add Session Year</h3>
-                        <p class="text-muted">Fill in the details below to add a new session year</p>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-calendar mr-2"></i>Add New Session Year</h3>
                     </div>
-                    <!-- form start -->
+                    
+                    <!-- Display Messages -->
+                    {% if messages %}
+                    <div class="card-body">
+                        {% for message in messages %}
+                        {% if message.tags == "error" %}
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% elif message.tags == "success" %}
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="fas fa-check-circle mr-2"></i>{{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
                     <form role="form" method="POST" action="{% url 'add_session_save' %}">
                         {% csrf_token %}
-
                         
-                                {% comment %} Display Messages {% endcomment %}
-                                {% if messages %}
-                                <div class="col-12">
-                                    {% for message in messages %}
-                                    {% if message.tags == "error" %}
-                                        <div class="alert alert-enhanced alert-danger alert-dismissible fade show" role="alert">
-                                        <i class="fas fa-exclamation-circle mr-2"></i>{{ message }}
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        </div>
-                                    {% elif message.tags == "success" %}
-                                        <div class="alert alert-enhanced alert-success alert-dismissible fade show" role="alert">
-                                        <i class="fas fa-check-circle mr-2"></i>{{ message }}
-                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                        </div>
-                                    {% endif %}
-                                    {% endfor %}
-                                </div>
-                                {% endif %}
-                            
-
                         <div class="card-body">
-                            <div class="form-group-enhanced">
-                                <label for="id_session_start_year"><i class="fas fa-calendar-alt mr-2"></i>Session Start Year</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                    </div>
-                                    <input type="date" class="form-control" name="session_start_year" id="id_session_start_year">
-                                </div>
+                            <div class="form-group">
+                                <label for="session_start_year"><i class="fas fa-calendar mr-2"></i>Session Start Year *</label>
+                                <input type="date" class="form-control" name="session_start_year" id="session_start_year" 
+                                       required>
                             </div>
-
-                            <div class="form-group-enhanced">
-                                <label for="id_session_end_year"><i class="fas fa-calendar-alt mr-2"></i>Session End Year</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                    </div>
-                                    <input type="date" class="form-control" name="session_end_year" id="id_session_end_year">
-                                </div>
+                            
+                            <div class="form-group">
+                                <label for="session_end_year"><i class="fas fa-calendar mr-2"></i>Session End Year *</label>
+                                <input type="date" class="form-control" name="session_end_year" id="session_end_year" 
+                                       required>
                             </div>
-
                         </div>
-                        <!-- /.card-body -->
 
-                        <div class="form-footer">
-                        <button type="submit" class="btn btn-primary btn-enhanced">Add Session Year</button>
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save mr-2"></i>Add Session Year
+                            </button>
+                            <a href="{% url 'manage_session' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left mr-2"></i>Back to Sessions
+                            </a>
                         </div>
                     </form>
-                    </div>
-                    <!-- /.card -->
-
                 </div>
             </div>
+        </div>
+    </div>
+</section>
 
-        </div><!-- /.container-fluid -->
-      </section>
-
-  {% endblock main_content %}
+{% endblock main_content %}
