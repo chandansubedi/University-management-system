@@ -31,7 +31,19 @@
                                 </select>
                             </div>
 
-                            <div class="row">
+                            <div class="form-group">
+                                <label>Date Range Type</label>
+                                <select class="form-control" id="dateRangeType" name="date_range_type">
+                                    <option value="custom">Custom Date Range</option>
+                                    <option value="this_month">This Month</option>
+                                    <option value="last_month">Last Month</option>
+                                    <option value="this_year">This Year</option>
+                                    <option value="last_30_days">Last 30 Days</option>
+                                    <option value="last_7_days">Last 7 Days</option>
+                                </select>
+                            </div>
+
+                            <div class="row" id="customDateRange">
                                 <div class="col-lg-6">
                                     <div class="form-group">
                                         <label>Start Date</label>
@@ -46,11 +58,49 @@
                                 </div>
                             </div>
 
+                            <div class="row" id="monthYearRange" style="display: none;">
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label>Month</label>
+                                        <select class="form-control" name="month" id="monthSelect">
+                                            <option value="1">January</option>
+                                            <option value="2">February</option>
+                                            <option value="3">March</option>
+                                            <option value="4">April</option>
+                                            <option value="5">May</option>
+                                            <option value="6">June</option>
+                                            <option value="7">July</option>
+                                            <option value="8">August</option>
+                                            <option value="9">September</option>
+                                            <option value="10">October</option>
+                                            <option value="11">November</option>
+                                            <option value="12">December</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group">
+                                        <label>Year</label>
+                                        <select class="form-control" name="year" id="yearSelect">
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                         <!-- /.card-body -->
 
                         <div class="card-footer">
-                            <button type="submit" class="btn btn-primary btn-block" id="fetch_student">View Attendance</button>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <button type="submit" class="btn btn-primary btn-block" id="fetch_student">View Attendance</button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-success btn-block" id="downloadMonthlyCSV">
+                                        <i class="fas fa-download"></i> Download Monthly CSV
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -65,12 +115,165 @@
 {% block custom_js %}
 <script>
     $(document).ready(function(){
-        // Set default dates (last 30 days)
         var today = new Date();
-        var thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+        var currentYear = today.getFullYear();
+        var currentMonth = today.getMonth() + 1;
         
+        // Populate year dropdown (current year and 2 years before)
+        var yearSelect = $('#yearSelect');
+        for (var i = currentYear; i >= currentYear - 2; i--) {
+            yearSelect.append('<option value="' + i + '">' + i + '</option>');
+        }
+        yearSelect.val(currentYear);
+        $('#monthSelect').val(currentMonth);
+        
+        // Set default dates (last 30 days)
+        var thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
         $('input[name="start_date"]').val(thirtyDaysAgo.toISOString().split('T')[0]);
         $('input[name="end_date"]').val(today.toISOString().split('T')[0]);
+        
+        // Handle date range type change
+        $('#dateRangeType').change(function(){
+            var rangeType = $(this).val();
+            var customRange = $('#customDateRange');
+            var monthYearRange = $('#monthYearRange');
+            
+            if (rangeType === 'custom') {
+                customRange.show();
+                monthYearRange.hide();
+            } else if (rangeType === 'this_month' || rangeType === 'last_month') {
+                customRange.hide();
+                monthYearRange.show();
+                updateDateRange(rangeType);
+            } else {
+                customRange.hide();
+                monthYearRange.hide();
+                updateDateRange(rangeType);
+            }
+        });
+        
+        // Handle month/year change for month-based ranges
+        $('#monthSelect, #yearSelect').change(function(){
+            var rangeType = $('#dateRangeType').val();
+            if (rangeType === 'this_month' || rangeType === 'last_month') {
+                updateDateRange(rangeType);
+            }
+        });
+        
+        function updateDateRange(rangeType) {
+            var startDate, endDate;
+            var today = new Date();
+            
+            switch(rangeType) {
+                case 'this_month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    break;
+                case 'last_month':
+                    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    endDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+                case 'this_year':
+                    startDate = new Date(today.getFullYear(), 0, 1);
+                    endDate = new Date(today.getFullYear(), 11, 31);
+                    break;
+                case 'last_30_days':
+                    startDate = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+                    endDate = today;
+                    break;
+                case 'last_7_days':
+                    startDate = new Date(today.getTime() - (7 * 24 * 60 * 60 * 1000));
+                    endDate = today;
+                    break;
+                case 'custom_month':
+                    var selectedMonth = parseInt($('#monthSelect').val());
+                    var selectedYear = parseInt($('#yearSelect').val());
+                    startDate = new Date(selectedYear, selectedMonth - 1, 1);
+                    endDate = new Date(selectedYear, selectedMonth, 0);
+                    break;
+            }
+            
+            if (startDate && endDate) {
+                $('input[name="start_date"]').val(formatDate(startDate));
+                $('input[name="end_date"]').val(formatDate(endDate));
+            }
+        }
+        
+        function formatDate(date) {
+            var year = date.getFullYear();
+            var month = String(date.getMonth() + 1).padStart(2, '0');
+            var day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+        
+        // Initialize with last 30 days
+        $('#dateRangeType').val('last_30_days').trigger('change');
+        
+        // Handle monthly CSV download
+        $('#downloadMonthlyCSV').click(function(e){
+            e.preventDefault();
+            
+            var subjectId = $('#subject').val();
+            var month = $('#monthSelect').val();
+            var year = $('#yearSelect').val();
+            var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+            
+            if (!subjectId) {
+                alert('Please select a subject first.');
+                return;
+            }
+            
+            if (!month || !year) {
+                alert('Please select month and year.');
+                return;
+            }
+            
+            // Show loading state
+            var $btn = $(this);
+            var originalText = $btn.html();
+            $btn.prop('disabled', true);
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> Generating CSV...');
+            
+            // Create a temporary form and submit it
+            var form = $('<form>', {
+                'method': 'POST',
+                'action': '{% url "staff_download_attendance_monthly" %}',
+                'style': 'display: none;'
+            });
+            
+            // Add form data as hidden inputs
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'subject',
+                'value': subjectId
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'month',
+                'value': month
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'year',
+                'value': year
+            }));
+            form.append($('<input>', {
+                'type': 'hidden',
+                'name': 'csrfmiddlewaretoken',
+                'value': csrfToken
+            }));
+            
+            // Append to body and submit
+            $('body').append(form);
+            form.submit();
+            
+            // Remove form and reset button after a delay
+            setTimeout(function(){
+                form.remove();
+                $btn.prop('disabled', false);
+                $btn.html(originalText);
+            }, 2000);
+        });
     });
 </script>
 {% endblock custom_js %}

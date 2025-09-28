@@ -468,18 +468,25 @@ def staff_download_attendance_csv(request):
     """
     Download attendance data as CSV file
     """
+    print(f"CSV Download Request - Method: {request.method}")  # Debug log
+    
     if request.method != "POST":
+        print("Invalid method - redirecting")  # Debug log
         messages.error(request, "Invalid Method")
         return redirect('staff_view_attendance')
     
     try:
+        print("Processing CSV download request")  # Debug log
         # Get form data
         subject_id = request.POST.get('subject')
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         
+        print(f"Received data - Subject: {subject_id}, Start: {start_date}, End: {end_date}")  # Debug log
+        
         # Validate required fields
         if not all([subject_id, start_date, end_date]):
+            print("Missing required fields")  # Debug log
             messages.error(request, "Missing required fields for CSV download")
             return redirect('staff_view_attendance')
         
@@ -527,52 +534,378 @@ def staff_download_attendance_csv(request):
         
         # Create CSV response
         response = HttpResponse(content_type='text/csv')
-        filename = f"attendance_{subject_obj.subject_name}_{start_date}_to_{end_date}.csv"
+        # Clean subject name for filename
+        clean_subject_name = "".join(c for c in subject_obj.subject_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        filename = f"attendance_{clean_subject_name}_{start_date}_to_{end_date}.csv"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         
         # Create CSV writer
         writer = csv.writer(response)
         
-        # Write header
-        writer.writerow([
-            'Student Name',
-            'Student ID',
-            'Date',
-            'Status',
-            'Subject',
-            'Course'
-        ])
+        # Get unique dates and students
+        unique_dates = sorted(list(set([report.attendance_id.attendance_date for report in attendance_reports])))
+        unique_students = {}
         
-        # Write data rows
+        # Group students and their attendance data
         for report in attendance_reports:
             if report.student_id and report.student_id.admin:
-                status = 'Present' if report.status else 'Absent'
-                writer.writerow([
-                    f"{report.student_id.admin.first_name} {report.student_id.admin.last_name}",
-                    report.student_id.admin.username,
-                    report.attendance_id.attendance_date.strftime('%Y-%m-%d'),
-                    status,
-                    subject_obj.subject_name,
-                    subject_obj.course_id.course_name
-                ])
+                student_key = f"{report.student_id.admin.first_name} {report.student_id.admin.last_name}"
+                if student_key not in unique_students:
+                    unique_students[student_key] = {
+                        'id': report.student_id.admin.username,
+                        'attendance': {}
+                    }
+                unique_students[student_key]['attendance'][report.attendance_id.attendance_date] = report.status
         
-        # Add summary at the end
-        total_records = attendance_reports.count()
-        present_count = attendance_reports.filter(status=True).count()
-        absent_count = attendance_reports.filter(status=False).count()
+        # Write header row with dates as columns
+        header_row = ['Student Name', 'Student ID'] + [date.strftime('%Y-%m-%d') for date in unique_dates] + ['Total Present', 'Total Absent', 'Attendance %']
+        writer.writerow(header_row)
         
+        # Write data rows for each student
+        for student_name, student_data in sorted(unique_students.items()):
+            row = [student_name, student_data['id']]
+            present_count = 0
+            absent_count = 0
+            
+            # Add attendance status for each date
+            for date in unique_dates:
+                if date in student_data['attendance']:
+                    status = student_data['attendance'][date]
+                    if status:
+                        row.append('P')  # Present
+                        present_count += 1
+                    else:
+                        row.append('A')  # Absent
+                        absent_count += 1
+                else:
+                    row.append('-')  # No data
+            
+            # Add summary columns
+            total_days = present_count + absent_count
+            attendance_percentage = (present_count / total_days * 100) if total_days > 0 else 0
+            row.extend([present_count, absent_count, f"{attendance_percentage:.1f}%"])
+            
+            writer.writerow(row)
+        
+        # Add summary section
         writer.writerow([])  # Empty row
         writer.writerow(['SUMMARY'])
-        writer.writerow(['Total Records', total_records])
-        writer.writerow(['Present', present_count])
-        writer.writerow(['Absent', absent_count])
-        writer.writerow(['Attendance Rate', f"{(present_count/total_records*100):.1f}%" if total_records > 0 else "0%"])
+        writer.writerow(['Subject', subject_obj.subject_name])
+        writer.writerow(['Course', subject_obj.course_id.course_name])
+        writer.writerow(['Date Range', f"{start_date} to {end_date}"])
+        writer.writerow(['Total Students', len(unique_students)])
+        writer.writerow(['Total Days', len(unique_dates)])
+        
+        # Overall statistics
+        total_present = sum(1 for report in attendance_reports if report.status)
+        total_absent = sum(1 for report in attendance_reports if not report.status)
+        total_records = total_present + total_absent
+        overall_attendance_rate = (total_present / total_records * 100) if total_records > 0 else 0
+        
+        writer.writerow(['Total Present Records', total_present])
+        writer.writerow(['Total Absent Records', total_absent])
+        writer.writerow(['Overall Attendance Rate', f"{overall_attendance_rate:.1f}%"])
         
         return response
         
     except Exception as e:
         print(f"Error in staff_download_attendance_csv: {str(e)}")
         messages.error(request, f"Error generating CSV file: {str(e)}")
+        return redirect('staff_view_attendance')
+
+
+def staff_download_attendance_csv_get(request):
+    """
+    Download attendance data as CSV file via GET request (alternative method)
+    """
+    print(f"CSV Download GET Request")  # Debug log
+    
+    try:
+        # Get form data from URL parameters
+        subject_id = request.GET.get('subject')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        
+        print(f"GET data - Subject: {subject_id}, Start: {start_date}, End: {end_date}")  # Debug log
+        
+        # Validate required fields
+        if not all([subject_id, start_date, end_date]):
+            print("Missing required fields in GET request")  # Debug log
+            messages.error(request, "Missing required fields for CSV download")
+            return redirect('staff_view_attendance')
+        
+        # Parse dates
+        try:
+            start_date_parse = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date_parse = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
+        except ValueError:
+            print("Invalid date format in GET request")  # Debug log
+            messages.error(request, "Invalid date format")
+            return redirect('staff_view_attendance')
+        
+        # Get subject
+        try:
+            subject_obj = Subjects.objects.get(id=subject_id)
+        except Subjects.DoesNotExist:
+            print("Subject not found in GET request")  # Debug log
+            messages.error(request, "Subject not found")
+            return redirect('staff_view_attendance')
+        
+        # Verify staff has access to this subject
+        if subject_obj.staff_id.id != request.user.id:
+            print("Permission denied in GET request")  # Debug log
+            messages.error(request, "You don't have permission to access this subject's attendance")
+            return redirect('staff_view_attendance')
+        
+        # Get attendance data
+        attendance = Attendance.objects.filter(
+            attendance_date__range=(start_date_parse, end_date_parse), 
+            subject_id=subject_obj
+        ).order_by('attendance_date')
+        
+        if not attendance.exists():
+            print("No attendance data found in GET request")  # Debug log
+            messages.warning(request, "No attendance data found for the selected date range")
+            return redirect('staff_view_attendance')
+        
+        # Get attendance reports
+        attendance_reports = AttendanceReport.objects.filter(
+            attendance_id__in=attendance
+        ).select_related('student_id__admin', 'attendance_id').order_by(
+            'attendance_id__attendance_date', 
+            'student_id__admin__first_name'
+        )
+        
+        if not attendance_reports.exists():
+            print("No attendance reports found in GET request")  # Debug log
+            messages.warning(request, "No attendance reports found for the selected date range")
+            return redirect('staff_view_attendance')
+        
+        print("Generating CSV file via GET request")  # Debug log
+        
+        # Create CSV response
+        response = HttpResponse(content_type='text/csv')
+        # Clean subject name for filename
+        clean_subject_name = "".join(c for c in subject_obj.subject_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        filename = f"attendance_{clean_subject_name}_{start_date}_to_{end_date}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Create CSV writer
+        writer = csv.writer(response)
+        
+        # Get unique dates and students
+        unique_dates = sorted(list(set([report.attendance_id.attendance_date for report in attendance_reports])))
+        unique_students = {}
+        
+        # Group students and their attendance data
+        for report in attendance_reports:
+            if report.student_id and report.student_id.admin:
+                student_key = f"{report.student_id.admin.first_name} {report.student_id.admin.last_name}"
+                if student_key not in unique_students:
+                    unique_students[student_key] = {
+                        'id': report.student_id.admin.username,
+                        'attendance': {}
+                    }
+                unique_students[student_key]['attendance'][report.attendance_id.attendance_date] = report.status
+        
+        # Write header row with dates as columns
+        header_row = ['Student Name', 'Student ID'] + [date.strftime('%Y-%m-%d') for date in unique_dates] + ['Total Present', 'Total Absent', 'Attendance %']
+        writer.writerow(header_row)
+        
+        # Write data rows for each student
+        for student_name, student_data in sorted(unique_students.items()):
+            row = [student_name, student_data['id']]
+            present_count = 0
+            absent_count = 0
+            
+            # Add attendance status for each date
+            for date in unique_dates:
+                if date in student_data['attendance']:
+                    status = student_data['attendance'][date]
+                    if status:
+                        row.append('P')  # Present
+                        present_count += 1
+                    else:
+                        row.append('A')  # Absent
+                        absent_count += 1
+                else:
+                    row.append('-')  # No data
+            
+            # Add summary columns
+            total_days = present_count + absent_count
+            attendance_percentage = (present_count / total_days * 100) if total_days > 0 else 0
+            row.extend([present_count, absent_count, f"{attendance_percentage:.1f}%"])
+            
+            writer.writerow(row)
+        
+        # Add summary section
+        writer.writerow([])  # Empty row
+        writer.writerow(['SUMMARY'])
+        writer.writerow(['Subject', subject_obj.subject_name])
+        writer.writerow(['Course', subject_obj.course_id.course_name])
+        writer.writerow(['Date Range', f"{start_date} to {end_date}"])
+        writer.writerow(['Total Students', len(unique_students)])
+        writer.writerow(['Total Days', len(unique_dates)])
+        
+        # Overall statistics
+        total_present = sum(1 for report in attendance_reports if report.status)
+        total_absent = sum(1 for report in attendance_reports if not report.status)
+        total_records = total_present + total_absent
+        overall_attendance_rate = (total_present / total_records * 100) if total_records > 0 else 0
+        
+        writer.writerow(['Total Present Records', total_present])
+        writer.writerow(['Total Absent Records', total_absent])
+        writer.writerow(['Overall Attendance Rate', f"{overall_attendance_rate:.1f}%"])
+        
+        print("CSV file generated successfully via GET request")  # Debug log
+        return response
+        
+    except Exception as e:
+        print(f"Error in staff_download_attendance_csv_get: {str(e)}")  # Debug log
+        messages.error(request, f"Error generating CSV file: {str(e)}")
+        return redirect('staff_view_attendance')
+
+
+def staff_download_attendance_monthly(request):
+    """
+    Download attendance data for a specific month
+    """
+    if request.method != "POST":
+        messages.error(request, "Invalid Method")
+        return redirect('staff_view_attendance')
+    
+    try:
+        # Get form data
+        subject_id = request.POST.get('subject')
+        month = request.POST.get('month')
+        year = request.POST.get('year')
+        
+        # Validate required fields
+        if not all([subject_id, month, year]):
+            messages.error(request, "Missing required fields for monthly CSV download")
+            return redirect('staff_view_attendance')
+        
+        # Calculate start and end dates for the month
+        start_date = datetime.date(int(year), int(month), 1)
+        if int(month) == 12:
+            end_date = datetime.date(int(year) + 1, 1, 1) - datetime.timedelta(days=1)
+        else:
+            end_date = datetime.date(int(year), int(month) + 1, 1) - datetime.timedelta(days=1)
+        
+        # Get subject
+        try:
+            subject_obj = Subjects.objects.get(id=subject_id)
+        except Subjects.DoesNotExist:
+            messages.error(request, "Subject not found")
+            return redirect('staff_view_attendance')
+        
+        # Verify staff has access to this subject
+        if subject_obj.staff_id.id != request.user.id:
+            messages.error(request, "You don't have permission to access this subject's attendance")
+            return redirect('staff_view_attendance')
+        
+        # Get attendance data
+        attendance = Attendance.objects.filter(
+            attendance_date__range=(start_date, end_date), 
+            subject_id=subject_obj
+        ).order_by('attendance_date')
+        
+        if not attendance.exists():
+            messages.warning(request, f"No attendance data found for {subject_obj.subject_name} in {month}/{year}")
+            return redirect('staff_view_attendance')
+        
+        # Get attendance reports
+        attendance_reports = AttendanceReport.objects.filter(
+            attendance_id__in=attendance
+        ).select_related('student_id__admin', 'attendance_id').order_by(
+            'attendance_id__attendance_date', 
+            'student_id__admin__first_name'
+        )
+        
+        if not attendance_reports.exists():
+            messages.warning(request, f"No attendance reports found for {subject_obj.subject_name} in {month}/{year}")
+            return redirect('staff_view_attendance')
+        
+        # Create CSV response
+        response = HttpResponse(content_type='text/csv')
+        # Clean subject name for filename
+        clean_subject_name = "".join(c for c in subject_obj.subject_name if c.isalnum() or c in (' ', '-', '_')).rstrip()
+        month_names = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        filename = f"attendance_{clean_subject_name}_{month_names[int(month)]}_{year}.csv"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Create CSV writer
+        writer = csv.writer(response)
+        
+        # Get unique dates and students
+        unique_dates = sorted(list(set([report.attendance_id.attendance_date for report in attendance_reports])))
+        unique_students = {}
+        
+        # Group students and their attendance data
+        for report in attendance_reports:
+            if report.student_id and report.student_id.admin:
+                student_key = f"{report.student_id.admin.first_name} {report.student_id.admin.last_name}"
+                if student_key not in unique_students:
+                    unique_students[student_key] = {
+                        'id': report.student_id.admin.username,
+                        'attendance': {}
+                    }
+                unique_students[student_key]['attendance'][report.attendance_id.attendance_date] = report.status
+        
+        # Write header row with dates as columns
+        header_row = ['Student Name', 'Student ID'] + [date.strftime('%Y-%m-%d') for date in unique_dates] + ['Total Present', 'Total Absent', 'Attendance %']
+        writer.writerow(header_row)
+        
+        # Write data rows for each student
+        for student_name, student_data in sorted(unique_students.items()):
+            row = [student_name, student_data['id']]
+            present_count = 0
+            absent_count = 0
+            
+            # Add attendance status for each date
+            for date in unique_dates:
+                if date in student_data['attendance']:
+                    status = student_data['attendance'][date]
+                    if status:
+                        row.append('P')  # Present
+                        present_count += 1
+                    else:
+                        row.append('A')  # Absent
+                        absent_count += 1
+                else:
+                    row.append('-')  # No data
+            
+            # Add summary columns
+            total_days = present_count + absent_count
+            attendance_percentage = (present_count / total_days * 100) if total_days > 0 else 0
+            row.extend([present_count, absent_count, f"{attendance_percentage:.1f}%"])
+            
+            writer.writerow(row)
+        
+        # Add summary section
+        writer.writerow([])  # Empty row
+        writer.writerow(['SUMMARY'])
+        writer.writerow(['Subject', subject_obj.subject_name])
+        writer.writerow(['Course', subject_obj.course_id.course_name])
+        writer.writerow(['Month', f"{month_names[int(month)]} {year}"])
+        writer.writerow(['Total Students', len(unique_students)])
+        writer.writerow(['Total Days', len(unique_dates)])
+        
+        # Overall statistics
+        total_present = sum(1 for report in attendance_reports if report.status)
+        total_absent = sum(1 for report in attendance_reports if not report.status)
+        total_records = total_present + total_absent
+        overall_attendance_rate = (total_present / total_records * 100) if total_records > 0 else 0
+        
+        writer.writerow(['Total Present Records', total_present])
+        writer.writerow(['Total Absent Records', total_absent])
+        writer.writerow(['Overall Attendance Rate', f"{overall_attendance_rate:.1f}%"])
+        
+        return response
+        
+    except Exception as e:
+        print(f"Error in staff_download_attendance_monthly: {str(e)}")
+        messages.error(request, f"Error generating monthly CSV file: {str(e)}")
         return redirect('staff_view_attendance')
 
 

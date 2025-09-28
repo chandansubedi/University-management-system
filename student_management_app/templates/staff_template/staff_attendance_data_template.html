@@ -81,8 +81,12 @@
                         {% if attendance_reports %}
                         <div class="card-tools">
                             <button type="button" class="btn btn-success btn-sm" id="downloadCSV">
-                                <i class="fas fa-download"></i> Download CSV
+                                <i class="fas fa-download"></i> Download CSV (POST)
                             </button>
+                            <a href="{% url 'staff_download_attendance_csv_get' %}?subject={{ subject_obj.id }}&start_date={{ start_date }}&end_date={{ end_date }}" 
+                               class="btn btn-primary btn-sm ml-2" id="downloadCSVLink">
+                                <i class="fas fa-download"></i> Download CSV (GET)
+                            </a>
                         </div>
                         {% endif %}
                     </div>
@@ -185,16 +189,18 @@
         
         // Debug: Check if button exists
         console.log('CSV button exists:', $('#downloadCSV').length > 0);
+        console.log('CSV link exists:', $('#downloadCSVLink').length > 0);
         
-        // Handle CSV download - only if button exists
+        // Handle CSV download
         $(document).on('click', '#downloadCSV', function(e){
             e.preventDefault();
-            console.log('CSV Download button clicked');
-            alert('CSV Download button clicked!'); // Temporary debug alert
+            console.log('CSV download button clicked'); // Debug log
             
             // Show loading state
-            $(this).prop('disabled', true);
-            $(this).html('<i class="fas fa-spinner fa-spin"></i> Generating CSV...');
+            var $btn = $(this);
+            var originalText = $btn.html();
+            $btn.prop('disabled', true);
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> Generating CSV...');
             
             // Get form data
             var subjectId = '{{ subject_obj.id }}';
@@ -202,52 +208,52 @@
             var endDate = '{{ end_date }}';
             var csrfToken = '{{ csrf_token }}';
             
-            console.log('Form data:', {
-                subject: subjectId,
-                start_date: startDate,
-                end_date: endDate,
-                csrf_token: csrfToken
-            });
+            console.log('Form data:', {subjectId, startDate, endDate}); // Debug log
             
-            // Create a temporary form and submit it
-            var form = $('<form>', {
-                'method': 'POST',
-                'action': '{% url "staff_download_attendance_csv" %}',
-                'style': 'display: none;'
-            });
+            // Use window.location for direct download
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{% url "staff_download_attendance_csv" %}';
+            form.style.display = 'none';
             
-            // Add form data as hidden inputs
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'subject',
-                'value': subjectId
-            }));
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'start_date',
-                'value': startDate
-            }));
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'end_date',
-                'value': endDate
-            }));
-            form.append($('<input>', {
-                'type': 'hidden',
-                'name': 'csrfmiddlewaretoken',
-                'value': csrfToken
-            }));
+            // Add CSRF token
+            var csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
             
-            // Append to body and submit
-            $('body').append(form);
-            console.log('Submitting form to:', '{% url "staff_download_attendance_csv" %}');
+            // Add subject
+            var subjectInput = document.createElement('input');
+            subjectInput.type = 'hidden';
+            subjectInput.name = 'subject';
+            subjectInput.value = subjectId;
+            form.appendChild(subjectInput);
+            
+            // Add start date
+            var startDateInput = document.createElement('input');
+            startDateInput.type = 'hidden';
+            startDateInput.name = 'start_date';
+            startDateInput.value = startDate;
+            form.appendChild(startDateInput);
+            
+            // Add end date
+            var endDateInput = document.createElement('input');
+            endDateInput.type = 'hidden';
+            endDateInput.name = 'end_date';
+            endDateInput.value = endDate;
+            form.appendChild(endDateInput);
+            
+            // Submit form
+            document.body.appendChild(form);
+            console.log('Submitting form to:', form.action); // Debug log
             form.submit();
             
             // Remove form and reset button after a delay
             setTimeout(function(){
-                form.remove();
-                $('#downloadCSV').prop('disabled', false);
-                $('#downloadCSV').html('<i class="fas fa-download"></i> Download CSV');
+                document.body.removeChild(form);
+                $btn.prop('disabled', false);
+                $btn.html(originalText);
             }, 3000);
         });
     });
