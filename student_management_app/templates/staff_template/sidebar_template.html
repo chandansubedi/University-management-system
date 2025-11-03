@@ -82,6 +82,24 @@
             </li>
 
             <li class="nav-item">
+              <a href="/files/staff/upload/" class="nav-link">
+                <i class="nav-icon fas fa-upload"></i>
+                <p>
+                  Upload Files
+                </p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="/files/staff/files/" class="nav-link">
+                <i class="nav-icon fas fa-folder-open"></i>
+                <p>
+                  My Files
+                </p>
+              </a>
+            </li>
+
+            <li class="nav-item">
               {% url 'staff_apply_leave' as staff_apply_leave %}
               <a href="{{ staff_apply_leave }}" class="nav-link {% if request.path == staff_apply_leave %} active {% endif %}">
                 <i class="nav-icon fas fa-envelope-open-text"></i>

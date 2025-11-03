@@ -1,0 +1,78 @@
+{% extends 'staff_template/base_template.html' %}
+{% load static %}
+
+{% block page_title %}
+Delete File
+{% endblock page_title %}
+
+{% block main_content %}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card card-danger">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="fas fa-exclamation-triangle"></i> Confirm File Deletion
+                        </h3>
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <h5><i class="icon fas fa-exclamation-triangle"></i> Warning!</h5>
+                            You are about to permanently delete this file. This action cannot be undone.
+                        </div>
+                        
+                        <div class="file-preview">
+                            <div class="text-center mb-3">
+                                <i class="{{ file.get_file_icon }} fa-4x text-danger"></i>
+                            </div>
+                            <h4 class="text-center">{{ file.title }}</h4>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Subject:</strong></td>
+                                    <td>{{ file.subject.subject_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Session:</strong></td>
+                                    <td>{{ file.session.session_start_year }} - {{ file.session.session_end_year }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>File Size:</strong></td>
+                                    <td>{{ file.get_file_size_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Upload Date:</strong></td>
+                                    <td>{{ file.uploaded_at|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Downloads:</strong></td>
+                                    <td>{{ file.download_count }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-danger btn-block">
+                                        <i class="fas fa-trash"></i> Yes, Delete File
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{% url 'staff_view_files' %}" class="btn btn-secondary btn-block">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock main_content %}
