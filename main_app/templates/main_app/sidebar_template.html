@@ -31,10 +31,18 @@
         <!-- Sidebar user panel (optional) -->
         <div class="user-panel mt-3 pb-3 mb-3 d-flex align-items-center" style="border-bottom:1px solid #4f8cff33;">
             <div class="image">
+                {% if request.user.user_type == '1' %}
+                <img src="{% static 'dist/img/AdminLTELogo.png' %}" class="img-circle elevation-2" alt="School Logo" style="width:40px; height:40px;">
+                {% else %}
                 <img src="{{ request.user.profile_pic}}" class="img-circle elevation-2" alt="User Image" style="width:40px; height:40px;">
+                {% endif %}
             </div>
             <div class="info ml-2">
+                {% if request.user.user_type == '1' %}
+                <a href="#" class="d-block text-white font-weight-bold">Admin</a>
+                {% else %}
                 <a href="#" class="d-block text-white font-weight-bold">{{user}}</a>
+                {% endif %}
             </div>
         </div>
         <!-- Sidebar Menu -->
