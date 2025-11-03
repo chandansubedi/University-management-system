@@ -11,6 +11,9 @@ class SessionYearModel(models.Model):
     session_end_year = models.DateField()
     objects = models.Manager()
 
+    def __str__(self):
+        return f"{self.session_start_year.year}-{self.session_end_year.year}"
+
 
 
 # Overriding the Default Django Auth User and adding One More Field (user_type)
@@ -36,8 +39,8 @@ class Courses(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
 
-    # def __str__(self):
-	#     return self.course_name
+    def __str__(self):
+        return self.course_name
 
 
 
@@ -60,6 +63,9 @@ class Subjects(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     objects = models.Manager()
+
+    def __str__(self):
+        return f"{self.subject_name} ({self.course_id.course_name})"
 
 
 

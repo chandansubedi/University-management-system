@@ -8,7 +8,7 @@ class SubjectFileForm(forms.ModelForm):
     
     class Meta:
         model = SubjectFile
-        fields = ['title', 'description', 'file', 'file_type', 'category', 'subject', 'session', 'is_public']
+        fields = ['title', 'description', 'file', 'file_type', 'subject', 'session', 'is_public']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -26,9 +26,6 @@ class SubjectFileForm(forms.ModelForm):
             'file_type': forms.Select(attrs={
                 'class': 'form-control'
             }),
-            'category': forms.Select(attrs={
-                'class': 'form-control'
-            }),
             'subject': forms.Select(attrs={
                 'class': 'form-control'
             }),
@@ -42,8 +39,6 @@ class SubjectFileForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make category optional
-        self.fields['category'].required = False
         self.fields['description'].required = False
         
         # Add help text
