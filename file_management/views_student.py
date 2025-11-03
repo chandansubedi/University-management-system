@@ -26,12 +26,23 @@ def student_view_files(request):
         return redirect('student_home')
     
     # Get files for subjects the student is enrolled in
-    student_subjects = student.course_id.subjects_set.all()
-    files = SubjectFile.objects.filter(
-        subject__in=student_subjects,
-        session=student.session_year_id,
-        is_active=True
-    ).order_by('-uploaded_at')
+    # Student can see files where:
+    # 1. Subject belongs to student's course
+    # 2. File session matches student's session
+    # 3. File is active and public
+    if not student.course_id:
+        messages.warning(request, "No course assigned. Please contact administrator.")
+        files = SubjectFile.objects.none()
+    else:
+        files = SubjectFile.objects.filter(
+            subject__course_id=student.course_id,
+            session=student.session_year_id,
+            is_active=True,
+            is_public=True
+        ).order_by('-uploaded_at')
+        
+        # Get subjects for filtering (subjects in student's course)
+        student_subjects = Subjects.objects.filter(course_id=student.course_id)
     
     # Search functionality
     search_query = request.GET.get('search', '')
@@ -60,7 +71,7 @@ def student_view_files(request):
     page_obj = paginator.get_page(page_number)
     
     # Get filter options
-    subjects = student_subjects
+    subjects = Subjects.objects.filter(course_id=student.course_id) if student.course_id else Subjects.objects.none()
     file_types = SubjectFile.FILE_TYPES
     
     context = {
@@ -100,7 +111,10 @@ def student_notes(request):
     else:
         form = StudentNoteForm()
         # Filter subjects to only show those the student is enrolled in
-        form.fields['subject'].queryset = student.course_id.subjects_set.all()
+        if student.course_id:
+            form.fields['subject'].queryset = Subjects.objects.filter(course_id=student.course_id)
+        else:
+            form.fields['subject'].queryset = Subjects.objects.none()
     
     # Get student's notes
     notes = StudentNote.objects.filter(created_by=student).order_by('-created_at')

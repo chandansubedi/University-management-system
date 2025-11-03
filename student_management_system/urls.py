@@ -7,6 +7,6 @@ from student_management_system import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('student_management_app.urls')),
-    path('files/', include('file_management.urls_simple')),
+    path('files/', include('file_management.urls')),
 ]+static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 urlpatterns +=  static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

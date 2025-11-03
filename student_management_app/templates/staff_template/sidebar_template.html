@@ -82,7 +82,8 @@
             </li>
 
             <li class="nav-item">
-              <a href="/files/staff/upload/" class="nav-link">
+              {% url 'staff_upload_file' as staff_upload_file %}
+              <a href="{{ staff_upload_file }}" class="nav-link {% if request.path == staff_upload_file %} active {% endif %}">
                 <i class="nav-icon fas fa-upload"></i>
                 <p>
                   Upload Files
@@ -91,7 +92,8 @@
             </li>
 
             <li class="nav-item">
-              <a href="/files/staff/files/" class="nav-link">
+              {% url 'staff_view_files' as staff_view_files %}
+              <a href="{{ staff_view_files }}" class="nav-link {% if request.path == staff_view_files %} active {% endif %}">
                 <i class="nav-icon fas fa-folder-open"></i>
                 <p>
                   My Files

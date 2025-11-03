@@ -25,8 +25,22 @@ def staff_upload_file(request):
         messages.error(request, "Staff profile not found. Please contact administrator.")
         return redirect('staff_home')
     
+    # Check if staff has subjects assigned
+    staff_subjects = Subjects.objects.filter(staff_id=request.user)
+    if not staff_subjects.exists():
+        messages.warning(request, "No subjects assigned to you. Please contact administrator to assign subjects before uploading files.")
+    
+    # Check if sessions exist
+    sessions = SessionYearModel.objects.all()
+    if not sessions.exists():
+        messages.warning(request, "No academic sessions found. Please contact administrator to create sessions.")
+    
     if request.method == 'POST':
         form = SubjectFileForm(request.POST, request.FILES)
+        
+        # Filter subjects to only show those taught by this staff (also for POST)
+        form.fields['subject'].queryset = staff_subjects
+        
         if form.is_valid():
             file_obj = form.save(commit=False)
             file_obj.uploaded_by = staff
@@ -35,27 +49,39 @@ def staff_upload_file(request):
             if file_obj.file:
                 file_obj.file_size = file_obj.file.size
             
-            file_obj.save()
-            
-            # Log the upload
-            FileAccessLog.objects.create(
-                file=file_obj,
-                user=request.user,
-                action='upload',
-                ip_address=request.META.get('REMOTE_ADDR'),
-                user_agent=request.META.get('HTTP_USER_AGENT', '')
-            )
-            
-            messages.success(request, f"File '{file_obj.title}' uploaded successfully!")
-            return redirect('staff_view_files')
+            try:
+                file_obj.save()
+                
+                # Log the upload
+                FileAccessLog.objects.create(
+                    file=file_obj,
+                    user=request.user,
+                    action='upload',
+                    ip_address=request.META.get('REMOTE_ADDR'),
+                    user_agent=request.META.get('HTTP_USER_AGENT', '')
+                )
+                
+                messages.success(request, f"File '{file_obj.title}' uploaded successfully!")
+                return redirect('staff_view_files')
+            except Exception as e:
+                messages.error(request, f"Error saving file: {str(e)}")
+        else:
+            # Form has errors - display them
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = SubjectFileForm()
         # Filter subjects to only show those taught by this staff
-        form.fields['subject'].queryset = Subjects.objects.filter(staff_id=request.user)
+        form.fields['subject'].queryset = staff_subjects
     
     context = {
         'form': form,
         'staff': staff,
+        'staff_subjects': staff_subjects,
+        'sessions': sessions,
+        'has_subjects': staff_subjects.exists(),
+        'has_sessions': sessions.exists(),
     }
     return render(request, 'file_management/staff_upload_file.html', context)
 

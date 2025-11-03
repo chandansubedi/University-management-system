@@ -29,9 +29,21 @@ def download_file(request, file_id):
         try:
             student = Students.objects.get(admin=request.user)
             # Check if student is enrolled in the subject and session
-            if (file_obj.subject not in student.course_id.subjects_set.all() or 
+            # Student can access if:
+            # 1. File's subject belongs to student's course
+            # 2. File's session matches student's session
+            # 3. File is active and public
+            if not student.course_id:
+                messages.error(request, "Student course not assigned. Please contact administrator.")
+                return redirect('student_home')
+            
+            if (file_obj.subject.course_id != student.course_id or 
                 file_obj.session != student.session_year_id):
                 messages.error(request, "Access denied. You don't have permission to download this file.")
+                return redirect('student_view_files')
+            
+            if not file_obj.is_public:
+                messages.error(request, "Access denied. This file is not available for download.")
                 return redirect('student_view_files')
         except Students.DoesNotExist:
             messages.error(request, "Student profile not found.")
@@ -90,9 +102,18 @@ def view_file_details(request, file_id):
     elif request.user.user_type == '3':  # Student
         try:
             student = Students.objects.get(admin=request.user)
-            if (file_obj.subject not in student.course_id.subjects_set.all() or 
+            # Check if student is enrolled in the subject and session
+            if not student.course_id:
+                messages.error(request, "Student course not assigned. Please contact administrator.")
+                return redirect('student_home')
+            
+            if (file_obj.subject.course_id != student.course_id or 
                 file_obj.session != student.session_year_id):
                 messages.error(request, "Access denied.")
+                return redirect('student_view_files')
+            
+            if not file_obj.is_public:
+                messages.error(request, "Access denied. This file is not available for viewing.")
                 return redirect('student_view_files')
         except Students.DoesNotExist:
             messages.error(request, "Student profile not found.")

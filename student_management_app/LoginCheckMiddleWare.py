@@ -21,6 +21,9 @@ class LoginCheckMiddleWare(MiddlewareMixin):
                     pass
                 elif modulename == "student_management_app.views" or modulename == "django.views.static":
                     pass
+                elif modulename.startswith("file_management"):
+                    # Allow file_management views for admin/HOD
+                    pass
                 else:
                     return redirect("admin_home")
             
@@ -29,6 +32,9 @@ class LoginCheckMiddleWare(MiddlewareMixin):
                     pass
                 elif modulename == "student_management_app.views" or modulename == "django.views.static":
                     pass
+                elif modulename.startswith("file_management"):
+                    # Allow file_management views for staff
+                    pass
                 else:
                     return redirect("staff_home")
             
@@ -36,6 +42,9 @@ class LoginCheckMiddleWare(MiddlewareMixin):
                 if modulename == "student_management_app.StudentViews":
                     pass
                 elif modulename == "student_management_app.views" or modulename == "django.views.static":
+                    pass
+                elif modulename.startswith("file_management"):
+                    # Allow file_management views for students
                     pass
                 else:
                     return redirect("student_home")
