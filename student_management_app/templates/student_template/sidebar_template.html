@@ -3,9 +3,9 @@
 <aside class="main-sidebar sidebar-dark-primary elevation-4 custom-sidebar">
       <!-- Brand Logo -->
       <a href="{% url 'student_home' %}" class="brand-link">
-        <img src="{% static 'dist/img/AdminLTELogo.png' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
+        <img src="{% static 'dist/img/gu.jpg' %}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
             style="opacity: .8">
-        <span class="brand-text font-weight-light">Open university</span>
+        <span class="brand-text font-weight-light">GU</span>
       </a>
 
       <!-- Sidebar -->
@@ -85,7 +85,7 @@
               <a href="{{ student_feedback }}" class="nav-link {% if request.path == student_feedback %} active {% endif %}">
                 <i class="nav-icon fas fa-comments"></i>
                 <p>
-                  Send Feedback
+                  Send Message
                   {% comment %} <span class="right badge badge-danger">New</span> {% endcomment %}
                 </p>
               </a>
