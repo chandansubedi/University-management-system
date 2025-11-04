@@ -16,8 +16,15 @@ DEBUG = True
 
 
 # Allow all hosts including Render
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '.vercel.app,.now.sh,.onrender.com,127.0.0.1,localhost').split(',')
-
+# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '.vercel.app,.now.sh,.onrender.com,127.0.0.1,localhost').split(',')
+ALLOWED_HOSTS = [
+    'university-management-system-s3s7.onrender.com',
+    '127.0.0.1',
+    'localhost'
+]
+CSRF_TRUSTED_ORIGINS = [
+    'https://university-management-system-s3s7.onrender.com',
+]
 
 # Application definition
 
