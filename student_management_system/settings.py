@@ -24,8 +24,6 @@ ALLOWED_HOSTS = [
 ]
 CSRF_TRUSTED_ORIGINS = [
     'https://university-management-system-s3s7.onrender.com',
-    '127.0.0.1',
-    'localhost'
 
 ]
 
